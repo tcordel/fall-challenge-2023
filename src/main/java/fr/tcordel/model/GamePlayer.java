@@ -43,4 +43,8 @@ public class GamePlayer extends AbstractMultiplayerPlayer {
 		});
 	}
 
+	void setIIndex(int index) {
+		this.index = index;
+	}
+
 }

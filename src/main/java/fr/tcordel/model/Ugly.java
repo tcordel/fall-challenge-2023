@@ -31,4 +31,9 @@ public class Ugly implements Entity {
     public double getY() {
         return pos.getY();
     }
+
+    @Override
+    public int getId() {
+        return id;
+    }
 }

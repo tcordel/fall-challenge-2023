@@ -15,7 +15,7 @@ import fr.tcordel.bridge.GameSummaryManager;
 
 public class Game {
 
-    private Random random;
+    Random random;
     private GameSummaryManager gameSummaryManager = new GameSummaryManager();
 
     List<GamePlayer> gamePlayers;
@@ -89,7 +89,10 @@ public class Game {
     static int ENTITY_COUNT = 0;
 
     public void init() {
-
+        gameTurn = 1;
+        initPlayers();
+        initFish();
+        initUglies();
 
         for (GamePlayer gamePlayer : gamePlayers) {
             if (SIMPLE_SCANS) {
@@ -187,16 +190,16 @@ public class Game {
         for (int i = 0; i < DRONES_PER_PLAYER; ++i) {
             double x = WIDTH / (DRONES_PER_PLAYER * 2 + 1) * (idxs[idxIdx] + 1);
             idxIdx++;
-//            for (GamePlayer player : gameManager.getActivePlayers()) {
-            //                Drone d = new Drone(x, DRONE_START_Y, ENTITY_COUNT++, player);
-            //
-            //                if (player.getIndex() == 1) {
-            //                    d.pos = d.pos.hsymmetric(CENTER.getX());
-            //                }
-            //
-            //                player.drones.add(d);
-            //
-            //            }
+            for (GamePlayer player : gamePlayers) {
+                Drone d = new Drone(x, DRONE_START_Y, ENTITY_COUNT++, player);
+
+                if (player.getIndex() == 1) {
+                    d.pos = d.pos.hsymmetric(CENTER.getX());
+                }
+
+                player.drones.add(d);
+
+            }
         }
     }
 

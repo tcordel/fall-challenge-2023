@@ -45,4 +45,10 @@ public class Fish implements Entity {
     public double getY() {
         return pos.getY();
     }
+
+
+    @Override
+    public int getId() {
+        return id;
+    }
 }

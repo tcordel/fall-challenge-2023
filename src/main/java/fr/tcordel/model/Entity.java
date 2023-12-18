@@ -4,4 +4,6 @@ public interface Entity {
     Vector getPos();
 
     Vector getSpeed();
+
+    int getId();
 }

@@ -105,4 +105,10 @@ public class Drone implements Entity {
         }
 
     }
+
+
+    @Override
+    public int getId() {
+        return id;
+    }
 }

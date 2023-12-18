@@ -1,0 +1,46 @@
+package fr.tcordel.model;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import fr.tcordel.bridge.AbstractMultiplayerPlayer;
+
+public class GamePlayer extends AbstractMultiplayerPlayer {
+
+	String message;
+	List<Drone> drones;
+	Set<Scan> scans;
+	Set<Fish> visibleFishes;
+
+	List<Integer> countFishSaved;
+	int points = 0;
+
+	public GamePlayer() {
+		drones = new ArrayList<>();
+		visibleFishes = new LinkedHashSet<>();
+		scans = new LinkedHashSet<>();
+		countFishSaved = new ArrayList<Integer>();
+	}
+
+	@Override
+	public int getExpectedOutputLines() {
+		return drones.size();
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void reset() {
+		message = null;
+		drones.forEach(d -> {
+			d.move = null;
+			d.fishesScannedThisTurn.clear();
+			d.didReport = false;
+			d.message = "";
+		});
+	}
+
+}

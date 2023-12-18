@@ -1,30 +1,52 @@
-package fr.tcordel;
+package fr.tcordel.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
+
 public class Player {
 
+	static Game game = new Game();
 	public static boolean FIRST_ROUND = true;
 
 	public static void main(String args[]) {
 		Scanner in = new Scanner(System.in);
 		int creatureCount = in.nextInt();
+		game.fishes = new ArrayList<>(creatureCount);
+		game.uglies = Collections.emptyList();
+		var fishes = new HashMap<Integer, Fish>();
+		var drones = new HashMap<Integer, Drone>();
+
 		for (int i = 0; i < creatureCount; i++) {
 			int creatureId = in.nextInt();
 			int color = in.nextInt();
 			int type = in.nextInt();
+			Fish fish = new Fish(creatureId, color, FishType.values()[type]);
+			fishes.put(creatureId, fish);
+			game.fishes.add(fish);
 		}
 
+		game.gamePlayers = List.of(new GamePlayer(), new GamePlayer());
 		// game loop
 		while (true) {
 			int myScore = in.nextInt();
+			game.gamePlayers.get(0).setScore(myScore);
 			int foeScore = in.nextInt();
+			game.gamePlayers.get(1).setScore(foeScore);
+
 			int myScanCount = in.nextInt();
+			game.gamePlayers.get(0).scans.clear();
 			for (int i = 0; i < myScanCount; i++) {
 				int creatureId = in.nextInt();
+				game.gamePlayers.get(0).scans.add(new Scan(fishes.get(creatureId)));
 			}
 			int foeScanCount = in.nextInt();
+			game.gamePlayers.get(1).scans.clear();
 			for (int i = 0; i < foeScanCount; i++) {
 				int creatureId = in.nextInt();
+				game.gamePlayers.get(1).scans.add(new Scan(fishes.get(creatureId)));
 			}
 			int myDroneCount = in.nextInt();
 			for (int i = 0; i < myDroneCount; i++) {
@@ -33,6 +55,12 @@ public class Player {
 				int droneY = in.nextInt();
 				int emergency = in.nextInt();
 				int battery = in.nextInt();
+				if (FIRST_ROUND) {
+					Drone drone = new Drone(droneX, droneY, droneId, game.gamePlayers.get(0));
+					game.gamePlayers.get(0).drones.add(drone);
+					drones.put(droneId, drone);
+				}
+				game.gamePlayers.get(0).drones.get(i).battery = battery;
 			}
 			int foeDroneCount = in.nextInt();
 			for (int i = 0; i < foeDroneCount; i++) {
@@ -41,11 +69,19 @@ public class Player {
 				int droneY = in.nextInt();
 				int emergency = in.nextInt();
 				int battery = in.nextInt();
+				if (FIRST_ROUND) {
+					Drone drone = new Drone(droneX, droneY, droneId, game.gamePlayers.get(1));
+					game.gamePlayers.get(1).drones.add(drone);
+					drones.put(droneId, drone);
+				}
+				game.gamePlayers.get(1).drones.get(i).battery = battery;
 			}
 			int droneScanCount = in.nextInt();
+			drones.values().forEach(drone -> drone.scans.clear());
 			for (int i = 0; i < droneScanCount; i++) {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
+				drones.get(droneId).scans.add(new Scan(fishes.get(creatureId)));
 			}
 			int visibleCreatureCount = in.nextInt();
 			for (int i = 0; i < visibleCreatureCount; i++) {
@@ -54,6 +90,9 @@ public class Player {
 				int creatureY = in.nextInt();
 				int creatureVx = in.nextInt();
 				int creatureVy = in.nextInt();
+				Fish fish = fishes.get(creatureId);
+				fish.pos = new Vector(creatureX, creatureY);
+				fish.speed = new Vector(creatureVx, creatureVy);
 			}
 			int radarBlipCount = in.nextInt();
 			for (int i = 0; i < radarBlipCount; i++) {
@@ -61,6 +100,8 @@ public class Player {
 				int creatureId = in.nextInt();
 				String radar = in.next();
 			}
+
+			game.performGameUpdate(0);
 			for (int i = 0; i < myDroneCount; i++) {
 
 				// Write an action using System.out.println()

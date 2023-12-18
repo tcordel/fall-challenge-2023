@@ -12,6 +12,12 @@ public class Fish implements Entity {
     /* stats */
     Integer fleeingFromPlayer;
 
+    public Fish(int id, int color, FishType type) {
+        this.type = type;
+        this.color = color;
+        this.id = id;
+    }
+
     public Fish(double x, double y, FishType type, int color, int id, int lowY, int highY) {
         this.id = id;
         this.pos = new Vector(x, y);

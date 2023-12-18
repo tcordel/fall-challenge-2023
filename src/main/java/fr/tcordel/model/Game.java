@@ -242,15 +242,15 @@ public class Game {
                         drone.scans.clear();
                         drone.dieAt = col.t;
 
-                        gameSummaryManager.addPlayerSummary(
-                            p.getNicknameToken(),
-                            String.format(
-                                "%s's drone %d is hit by monster %d!",
-                                p.getNicknameToken(),
-                                drone.id,
-                                ugly.id
-                            )
-                        );
+//                        gameSummaryManager.addPlayerSummary(
+//                            p.getNicknameToken(),
+//                            String.format(
+//                                "%s's drone %d is hit by monster %d!",
+//                                p.getNicknameToken(),
+//                                drone.id,
+//                                ugly.id
+//                            )
+//                        );
 
                         dronesEaten++;
                         // If two uglies hit the drone, let's just keep the first collision, it matters not.
@@ -559,10 +559,10 @@ public class Game {
                     drone.lightOn = true;
                 } else {
                     if (drone.lightSwitch && !drone.dead) {
-                        gameSummaryManager.addPlayerSummary(
-                            gamePlayer.getNicknameToken(),
-                            gamePlayer.getNicknameToken() + "'s drone " + drone.id + " does not have enough battery to activate light"
-                        );
+//                        gameSummaryManager.addPlayerSummary(
+//                            gamePlayer.getNicknameToken(),
+//                            gamePlayer.getNicknameToken() + "'s drone " + drone.id + " does not have enough battery to activate light"
+//                        );
                     }
                     drone.lightOn = false;
                 }
@@ -611,20 +611,20 @@ public class Game {
                         return Integer.toString(fishScan);
                     }).collect((Collectors.joining(",")));
                     if (drone.fishesScannedThisTurn.size() == 1) {
-                        gameSummaryManager.addPlayerSummary(
-                            gamePlayer.getNicknameToken(),
-                            String.format(
-                                "%s's drone %d scans fish %d", gamePlayer.getNicknameToken(), drone.id, drone.fishesScannedThisTurn.get(0)
-                            )
-                        );
+//                        gameSummaryManager.addPlayerSummary(
+//                            gamePlayer.getNicknameToken(),
+//                            String.format(
+//                                "%s's drone %d scans fish %d", gamePlayer.getNicknameToken(), drone.id, drone.fishesScannedThisTurn.get(0)
+//                            )
+//                        );
                     } else {
-                        gameSummaryManager.addPlayerSummary(
-                            gamePlayer.getNicknameToken(),
-                            String.format(
-                                "%s's drone %d scans %d fish: %s", gamePlayer.getNicknameToken(), drone.id, drone.fishesScannedThisTurn.size(),
-                                summaryScan
-                            )
-                        );
+//                        gameSummaryManager.addPlayerSummary(
+//                            gamePlayer.getNicknameToken(),
+//                            String.format(
+//                                "%s's drone %d scans %d fish: %s", gamePlayer.getNicknameToken(), drone.id, drone.fishesScannedThisTurn.size(),
+//                                summaryScan
+//                            )
+//                        );
                     }
                 }
             }
@@ -728,19 +728,19 @@ public class Game {
             String summaryString = playerScans.getValue().stream().map(scan -> String.valueOf(scan.fishId))
                 .collect(Collectors.joining(", "));
             if (playerScans.getValue().size() == 1) {
-                gameSummaryManager.addPlayerSummary(
-                    playerScans.getKey(),
-                    String.format(
-                        "%s was the first to save the scan of creature %s", playerScans.getKey(), summaryString
-                    )
-                );
+//                gameSummaryManager.addPlayerSummary(
+//                    playerScans.getKey(),
+//                    String.format(
+//                        "%s was the first to save the scan of creature %s", playerScans.getKey(), summaryString
+//                    )
+//                );
             } else {
-                gameSummaryManager.addPlayerSummary(
-                    playerScans.getKey(),
-                    String.format(
-                        "%s was the first to save the scans of %d creatures: %s", playerScans.getKey(), playerScans.getValue().size(), summaryString
-                    )
-                );
+//                gameSummaryManager.addPlayerSummary(
+//                    playerScans.getKey(),
+//                    String.format(
+//                        "%s was the first to save the scans of %d creatures: %s", playerScans.getKey(), playerScans.getValue().size(), summaryString
+//                    )
+//                );
             }
         });
         firstToScanAllFishOfTypeTemp.forEach((k, v) -> {
@@ -748,21 +748,21 @@ public class Game {
 
             String playerName = gamePlayers.get(v).getNicknameToken();
             String fishSpecies = k.ordinal() + " (" + k.toString().toLowerCase() + ")";
-            gameSummaryManager
-                .addPlayerSummary(
-                    playerName,
-                    String.format("%s saved the scans of every color of %s first", playerName, fishSpecies)
-                );
+//            gameSummaryManager
+//                .addPlayerSummary(
+//                    playerName,
+//                    String.format("%s saved the scans of every color of %s first", playerName, fishSpecies)
+//                );
         });
         firstToScanAllFishOfColorTemp.forEach((k, v) -> {
             firstToScanAllFishOfColor.putIfAbsent(k, v);
 
             String playerName = gamePlayers.get(v).getNicknameToken();
-            gameSummaryManager
-                .addPlayerSummary(
-                    playerName,
-                    String.format("%s has saved the scans of every %d colored (%s) creature first", playerName, k, COLORS[k])
-                );
+//            gameSummaryManager
+//                .addPlayerSummary(
+//                    playerName,
+//                    String.format("%s has saved the scans of every %d colored (%s) creature first", playerName, k, COLORS[k])
+//                );
         });
 
         firstToScanTemp.clear();

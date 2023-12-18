@@ -1,11 +1,9 @@
 package fr.tcordel.model;
 
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Ellipse2D.Double;
 import java.awt.geom.Rectangle2D;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -16,10 +14,11 @@ public class GameJframeDebugger extends JFrame {
 
 	private static final long seed = -8103073722892937000L;
 
+	private final Game game;
 
 	public GameJframeDebugger() throws HeadlessException, NoSuchAlgorithmException, InterruptedException {
 		super("Emulating Discovering depth");
-		initGame();
+		game = GameUtils.initGame(seed);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(Game.WIDTH / 10, Game.HEIGHT / 10);
 		setVisible(true);
@@ -34,39 +33,6 @@ public class GameJframeDebugger extends JFrame {
 
 	public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
 		GameJframeDebugger gameJframeDebugger = new GameJframeDebugger();
-	}
-
-	Game game = new Game();
-
-	void initGame() throws NoSuchAlgorithmException {
-		int leagueLevel = 1;
-		if (leagueLevel == 1) {
-			Game.ENABLE_UGLIES = false;
-			Game.FISH_WILL_FLEE = false;
-			Game.DRONES_PER_PLAYER = 1;
-			Game.SIMPLE_SCANS = true;
-			Game.FISH_WILL_MOVE = true;
-		} else if (leagueLevel == 2) {
-			Game.ENABLE_UGLIES = false;
-			Game.FISH_WILL_FLEE = false;
-			Game.DRONES_PER_PLAYER = 1;
-		} else if (leagueLevel == 3) {
-			Game.ENABLE_UGLIES = false;
-		} else {
-
-		}
-
-		game.random = SecureRandom.getInstance("SHA1PRNG");
-		game.random.setSeed(seed);
-		GamePlayer me = new GamePlayer();
-		me.setIIndex(0);
-		GamePlayer foe = new GamePlayer();
-		foe.setIIndex(1);
-		game.gamePlayers = List.of(me, foe);
-		game.init();
-		System.out.println(Serializer.serializeFrameData(game));
-		System.err.println(game.random.toString());
-
 	}
 
 	@Override

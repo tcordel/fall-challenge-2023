@@ -46,4 +46,18 @@ public class Closest<T extends Entity> {
         return new Vector(x / list.size(), y / list.size());
     }
 
+    public static Vector getMeanPos(List<? extends Entity> list) {
+        if (list.size() == 1) {
+            return list.get(0).getPos();
+        }
+        double x = 0;
+        double y = 0;
+
+        for (Entity entity : list) {
+            x += entity.getPos().getX();
+            y += entity.getPos().getY();
+        }
+        return new Vector(x / list.size(), y / list.size());
+    }
+
 }

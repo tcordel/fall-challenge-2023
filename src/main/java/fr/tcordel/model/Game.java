@@ -9,6 +9,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static fr.tcordel.model.Closest.getMeanPos;
 import static fr.tcordel.model.FishType.FISH_TYPE_VALUES;
 
 public class Game {
@@ -60,6 +61,7 @@ public class Game {
 
     public static final int FISH_SWIM_SPEED = 200;
     public static final int FISH_AVOID_RANGE = 600;
+    public static final int FISH_AVOID_RANGE_POW = FISH_AVOID_RANGE*FISH_AVOID_RANGE;
     public static final int FISH_FLEE_SPEED = 400;
     public static final int UGLY_ATTACK_SPEED = (int) (DRONE_MOVE_SPEED * 0.9);
     public static final int UGLY_SEARCH_SPEED = (int) (UGLY_ATTACK_SPEED / 2);
@@ -306,6 +308,8 @@ public class Game {
         }
     }
 
+    int updateUgly_iUgly = 0;
+    ArrayList<Ugly> updateUgly_closests = new ArrayList<>();
     void updateUglySpeeds() {
         for (iUglies = 0; iUglies < uglies.size(); iUglies++) {
             Ugly ugly = uglies.get(iUglies);
@@ -322,12 +326,28 @@ public class Game {
                 }
 
                 if (!ugly.speed.isZero()) {
-                    Closest<Ugly> closestUglies = getClosestTo(
-                        ugly.pos,
-                        uglies.stream().filter(u -> u != ugly)
-                    );
-                    if (!closestUglies.list.isEmpty() && closestUglies.distance <= FISH_AVOID_RANGE) {
-                        Vector avoid = closestUglies.getMeanPos();
+//                    Closest<Ugly> closestUglies = getClosestTo(
+//                        ugly.pos,
+//                        uglies.stream().filter(u -> u != ugly)
+//                    );
+                    updateUgly_closests.clear();
+                    double minDist = 0;
+                    for (updateUgly_iUgly = 0; updateUgly_iUgly < uglies.size(); updateUgly_iUgly++) {
+                        Ugly t = uglies.get(updateUgly_iUgly);
+                        if (t == ugly) {
+                            continue;
+                        }
+                        double dist = t.getPos().sqrEuclideanTo(ugly.pos);
+                        if (updateUgly_closests.isEmpty() || dist < minDist) {
+                            updateUgly_closests.clear();
+                            updateUgly_closests.add(t);
+                            minDist = dist;
+                        } else if (dist == minDist) {
+                            updateUgly_closests.add(t);
+                        }
+                    }
+                    if (!updateUgly_closests.isEmpty() && minDist <= FISH_AVOID_RANGE_POW) {
+                        Vector avoid = getMeanPos(updateUgly_closests);
                         Vector avoidDir = new Vector(avoid, ugly.pos).normalize();
                         if (!avoidDir.isZero()) {
                             ugly.speed = avoidDir.mult(FISH_SWIM_SPEED).round();
@@ -360,7 +380,10 @@ public class Game {
         }
     }
 
+    int updateFish_iFish = 0;
+    ArrayList<Fish> updateFish_closests = new ArrayList<>();
     void updateFish() {
+
         for (iFish = 0; iFish < fishes.size(); iFish++) {
             Fish fish = fishes.get(iFish);
             fish.isFleeing = false;
@@ -394,14 +417,34 @@ public class Game {
                 fish.speed = fleeVec.round();
                 fish.isFleeing = true;
             } else {
-                Closest<Fish> closestFishes = getClosestTo(
-                    fish.pos,
-                    fishes.stream().filter(f -> f != fish)
-                );
+
+                //                Closest<Fish> closestFishes = getClosestTo(
+                //                    fish.pos,
+                //                    fishes.stream().filter(f -> f != fish)
+                //                );
+
+                double minDist = 0;
+                updateFish_closests.clear();
+                for (updateFish_iFish = 0; updateFish_iFish < fishes.size(); updateFish_iFish++) {
+                    Fish f = fishes.get(updateFish_iFish);
+                    if (f == fish) {
+                        continue;
+                    }
+                    double dist = f.getPos().sqrEuclideanTo(fish.pos);
+                    if (updateFish_closests.isEmpty() || dist < minDist) {
+                        updateFish_closests.clear();
+                        updateFish_closests.add(f);
+                        minDist = dist;
+                    } else if (dist == minDist) {
+                        updateFish_closests.add(f);
+                    }
+                }
+
+//                Closest<Fish> closestFishes = new Closest<Fish>(updateFish_closests, distance);
 
                 Vector swimVec = fish.speed.normalize().mult(FISH_SWIM_SPEED);
-                if (!closestFishes.list.isEmpty() && closestFishes.distance <= FISH_AVOID_RANGE) {
-                    Vector avoid = closestFishes.getMeanPos();
+                if (!updateFish_closests.isEmpty() && minDist <= FISH_AVOID_RANGE_POW) {
+                    Vector avoid = getMeanPos(updateFish_closests);
                     Vector avoidDir = new Vector(avoid, fish.pos).normalize();
                     swimVec = avoidDir.mult(FISH_SWIM_SPEED);
                 }
@@ -475,6 +518,7 @@ public class Game {
             drone.pos = new Vector(WIDTH - 1, drone.pos.getY());
         }
     }
+
 
     private <T extends Entity> Closest<T> getClosestTo(Vector from, Stream<T> targetStream) {
         List<T> targets = targetStream.collect(Collectors.toList());

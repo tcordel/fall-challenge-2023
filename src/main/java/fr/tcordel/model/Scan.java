@@ -48,4 +48,7 @@ public class Scan {
 
     }
 
+    public int getFishId() {
+        return fishId;
+    }
 }

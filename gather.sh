@@ -9,7 +9,7 @@ rm -f ${folder_out}/outImport.java
 for classes in `find $folder -type f | grep -v NotPackaged`; do
     should_discard=`cat $classes | grep -c '@NotPackaged'`;
     if [ "$should_discard" == "0" ]; then
-      cat $classes | grep "import" | grep -v "import fr.tcordel" >> ${folder_out}/outImport.java
+      cat $classes | grep "import" | grep -v "import fr.tcordel" | grep -v "import static">> ${folder_out}/outImport.java
     fi
 done;
 

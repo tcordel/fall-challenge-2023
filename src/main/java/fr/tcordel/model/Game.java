@@ -10,8 +10,6 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fr.tcordel.model.Closest.getMeanPos;
-import static fr.tcordel.model.FishType.FISH_TYPE_VALUES;
 
 public class Game {
 
@@ -982,8 +980,8 @@ public class Game {
 
     private boolean playerScannedAllFishOfColor(GamePlayer gamePlayer, int color) {
 
-        for (iFishType = 0; iFishType < FISH_TYPE_VALUES.length; iFishType ++) {
-            if (!playerScanned(gamePlayer, new Scan(FISH_TYPE_VALUES[iFishType], color))) {
+        for (iFishType = 0; iFishType < FishType.FISH_TYPE_VALUES.length; iFishType ++) {
+            if (!playerScanned(gamePlayer, new Scan(FishType.FISH_TYPE_VALUES[iFishType], color))) {
                 return false;
             }
         }
@@ -1180,4 +1178,17 @@ public class Game {
         return firstToScanAllFishOfColor.getOrDefault(col, -1).equals(gamePlayer.getIndex());
     }
 
+    public Vector getMeanPos(List<? extends Entity> list) {
+        if (list.size() == 1) {
+            return list.get(0).getPos();
+        }
+        double x = 0;
+        double y = 0;
+
+        for (Entity entity : list) {
+            x += entity.getPos().getX();
+            y += entity.getPos().getY();
+        }
+        return new Vector(x / list.size(), y / list.size());
+    }
 }

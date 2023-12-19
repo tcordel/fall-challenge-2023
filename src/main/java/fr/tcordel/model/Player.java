@@ -2,9 +2,12 @@ package fr.tcordel.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Player {
 
@@ -16,6 +19,7 @@ public class Player {
 		int creatureCount = in.nextInt();
 		game.fishes = new ArrayList<>(creatureCount);
 		game.uglies = Collections.emptyList();
+		Set<Integer> scans = new HashSet<>();
 		var fishes = new HashMap<Integer, Fish>();
 		var drones = new HashMap<Integer, Drone>();
 
@@ -60,7 +64,10 @@ public class Player {
 					game.gamePlayers.get(0).drones.add(drone);
 					drones.put(droneId, drone);
 				}
-				game.gamePlayers.get(0).drones.get(i).battery = battery;
+
+				Drone drone = game.gamePlayers.get(0).drones.get(i);
+				drone.pos = new Vector(droneX, droneY);
+				drone.battery = battery;
 			}
 			int foeDroneCount = in.nextInt();
 			for (int i = 0; i < foeDroneCount; i++) {
@@ -74,14 +81,18 @@ public class Player {
 					game.gamePlayers.get(1).drones.add(drone);
 					drones.put(droneId, drone);
 				}
-				game.gamePlayers.get(1).drones.get(i).battery = battery;
+				Drone drone = game.gamePlayers.get(1).drones.get(i);
+				drone.pos = new Vector(droneX, droneY);
+				drone.battery = battery;
 			}
 			int droneScanCount = in.nextInt();
 			drones.values().forEach(drone -> drone.scans.clear());
 			for (int i = 0; i < droneScanCount; i++) {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
-				drones.get(droneId).scans.add(new Scan(fishes.get(creatureId)));
+				System.err.println("Scanned " + droneId + "-" + creatureId);
+				Scan e = new Scan(fishes.get(creatureId));
+				drones.get(droneId).scans.add(e);
 			}
 			int visibleCreatureCount = in.nextInt();
 			for (int i = 0; i < visibleCreatureCount; i++) {
@@ -101,13 +112,31 @@ public class Player {
 				String radar = in.next();
 			}
 
-			game.performGameUpdate(0);
+//			game.performGameUpdate(0);
 			for (int i = 0; i < myDroneCount; i++) {
+				Drone drone = game.gamePlayers.get(0)
+					.drones.get(i);
+				Fish fish = fishes.values()
+					.stream()
+					.filter(f -> !scans.contains(f.id))
+					.sorted(Comparator.comparingDouble(f -> f.pos.manhattanTo(drone.getPos())))
+					.findFirst()
+					.orElse(null);
 
 				// Write an action using System.out.println()
 				// To debug: System.err.println("Debug messages...");
+				if (fish == null) {
+					System.out.println("WAIT 0"); // MOVE <x> <y> <light (1|0)> | WAIT <light (1|0)>
+				} else {
+					boolean inRangeOfLight = fish.getPos().euclideanTo(drone.getPos()) <= Game.LIGHT_SCAN_RANGE;
+					System.out.println("MOVE %d %d %d".formatted((int)fish.getX(), (int)fish.getY(),
+						inRangeOfLight ? 1 : 0));
 
-				System.out.println("WAIT 1"); // MOVE <x> <y> <light (1|0)> | WAIT <light (1|0)>
+					if (inRangeOfLight) {
+						System.err.println("ADD fish" + fish.getId());
+						scans.add(fish.getId());
+					}
+				}
 			}
 		}
 	}

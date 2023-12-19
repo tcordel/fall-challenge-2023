@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import fr.tcordel.bridge.GameSummaryManager;
 
 public class Game {
+
+    static int iPlayer, iDrone, iUglies, iFish, iScan, n, o = 0;
 
     Random random;
     private GameSummaryManager gameSummaryManager = new GameSummaryManager();
@@ -81,7 +81,7 @@ public class Game {
     private static int[] timesAggroed;
     private static int[] maxTurnsSpentWithScan = new int[] {0, 0};
     private static int[] maxY = new int[] {0, 0};
-    private static int[][] turnSavedFish = new int[][] {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
+    public static int[][] turnSavedFish = new int[][] {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
     private static int dronesEaten = 0;
     private static int fishScanned = 0;
@@ -217,7 +217,8 @@ public class Game {
         if (!targetableDrones.isEmpty()) {
             Closest<Drone> closestTargets = getClosestTo(ugly.pos, targetableDrones.stream());
             ugly.target = closestTargets.getMeanPos();
-            for (Drone d : closestTargets.list) {
+            for (iDrone = 0; iDrone < closestTargets.list.size(); iDrone++) {
+                Drone d = closestTargets.list.get(iDrone);
                 timesAggroed[d.owner.getIndex()]++;
             }
 
@@ -229,13 +230,16 @@ public class Game {
     }
 
     void moveEntities() {
-        for (GamePlayer p : gamePlayers) {
-            for (Drone drone : p.drones) {
+        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
+            GamePlayer p = gamePlayers.get(iPlayer);
+            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
+                Drone drone = p.drones.get(iDrone);
                 if (drone.dead) {
                     continue;
                 }
                 //NOTE: the collision code does not take into account the snap to map borders
-                for (Ugly ugly : uglies) {
+                for (iUglies = 0; iUglies < uglies.size(); iUglies++) {
+                    Ugly ugly = uglies.get(iUglies);
                     Collision col = getCollision(drone, ugly);
                     if (col.happened()) {
                         drone.dying = true;
@@ -260,32 +264,37 @@ public class Game {
             }
         }
 
-        for (GamePlayer p : gamePlayers) {
-            for (Drone drone : p.drones) {
+        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
+            GamePlayer p = gamePlayers.get(iPlayer);
+            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
+                Drone drone = p.drones.get(iDrone);
                 Vector speed = drone.getSpeed();
                 drone.pos = drone.pos.add(speed);
                 snapToDroneZone(drone);
             }
         }
 
-        for (Fish f : fishes) {
-            f.pos = f.pos.add(f.getSpeed());
-            snapToFishZone(f);
+        for (iFish = 0; iFish < fishes.size(); iFish++) {
+            Fish fish = fishes.get(iFish);
+            fish.pos = fish.pos.add(fish.getSpeed());
+            snapToFishZone(fish);
         }
         List<Fish> fishToRemove = fishes.stream().filter(
             fish -> fish.getPos().getX() > WIDTH - 1 || fish.getPos().getX() < 0
         ).collect(Collectors.toList());
-        for (Fish fish : fishToRemove) {
+        for (iFish = 0; iFish < fishToRemove.size(); iFish++) {
+            Fish fish = fishes.get(iFish);
             if (fish.fleeingFromPlayer != null && fish.fleeingFromPlayer != -1) {
                 chasedFishCount[fish.fleeingFromPlayer] += 1;
             }
         }
         fishes.removeAll(fishToRemove);
-        for (Fish f : fishes) {
-            f.fleeingFromPlayer = null;
+        for (iFish = 0; iFish < fishes.size(); iFish++) {
+            fishes.get(iFish).fleeingFromPlayer = null;
         }
 
-        for (Ugly ugly : uglies) {
+        for (iUglies = 0; iUglies < uglies.size(); iUglies++) {
+            Ugly ugly = uglies.get(iUglies);
             ugly.pos = ugly.pos.add(ugly.speed);
             snapToUglyZone(ugly);
         }
@@ -300,7 +309,8 @@ public class Game {
     }
 
     void updateUglySpeeds() {
-        for (Ugly ugly : uglies) {
+        for (iUglies = 0; iUglies < uglies.size(); iUglies++) {
+            Ugly ugly = uglies.get(iUglies);
             Vector target = ugly.target;
             if (target != null) {
                 Vector attackVec = new Vector(ugly.pos, target);
@@ -346,14 +356,15 @@ public class Game {
     }
 
     void updateUglyTargets() {
-        for (Ugly ugly : uglies) {
-            boolean foundTarget = updateUglyTarget(ugly);
-            ugly.foundTarget = foundTarget;
+        for (iUglies = 0; iUglies < uglies.size(); iUglies++) {
+            Ugly ugly = uglies.get(iUglies);
+            ugly.foundTarget = updateUglyTarget(ugly);
         }
     }
 
     void updateFish() {
-        for (Fish fish : fishes) {
+        for (iFish = 0; iFish < fishes.size(); iFish++) {
+            Fish fish = fishes.get(iFish);
             fish.isFleeing = false;
 
             Vector fleeFrom = null;
@@ -431,8 +442,10 @@ public class Game {
     }
 
     void updateDrones() {
-        for (GamePlayer p : gamePlayers) {
-            for (Drone drone : p.drones) {
+        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
+            GamePlayer p = gamePlayers.get(iPlayer);
+            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
+                Drone drone = p.drones.get(iDrone);
                 int moveSpeed = (int) (DRONE_MOVE_SPEED - DRONE_MOVE_SPEED * DRONE_MOVE_SPEED_LOSS_PER_SCAN * drone.scans.size());
                 if (drone.dead) {
                     Vector floatVec = new Vector(0, -1).mult(DRONE_EMERGENCY_SPEED);
@@ -520,26 +533,28 @@ public class Game {
     }
 
     private void upkeepDrones() {
-        for (GamePlayer p : gamePlayers) {
-            for (Drone d : p.drones) {
-                if (d.dying) {
-                    d.dead = true;
-                    d.dying = false;
-                } else if (d.dead && d.getY() == DRONE_UPPER_Y_LIMIT) {
-                    d.dead = false;
+        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
+            GamePlayer p = gamePlayers.get(iPlayer);
+            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
+                Drone drone = p.drones.get(iDrone);
+                if (drone.dying) {
+                    drone.dead = true;
+                    drone.dying = false;
+                } else if (drone.dead && drone.getY() == DRONE_UPPER_Y_LIMIT) {
+                    drone.dead = false;
                 }
 
                 /* stats */
-                if (d.scans.isEmpty()) {
-                    d.turnsSpentWithScan = 0;
+                if (drone.scans.isEmpty()) {
+                    drone.turnsSpentWithScan = 0;
                 } else {
-                    d.turnsSpentWithScan++;
-                    if (d.turnsSpentWithScan > d.maxTurnsSpentWithScan) {
-                        d.maxTurnsSpentWithScan = d.turnsSpentWithScan;
+                    drone.turnsSpentWithScan++;
+                    if (drone.turnsSpentWithScan > drone.maxTurnsSpentWithScan) {
+                        drone.maxTurnsSpentWithScan = drone.turnsSpentWithScan;
                     }
                 }
-                if (d.pos.getY() > d.maxY) {
-                    d.maxY = (int) d.pos.getY();
+                if (drone.pos.getY() > drone.maxY) {
+                    drone.maxY = (int)drone.pos.getY();
                 }
             }
         }
@@ -547,8 +562,10 @@ public class Game {
     }
 
     private void doBatteries() {
-        for (GamePlayer gamePlayer : gamePlayers) {
-            for (Drone drone : gamePlayer.drones) {
+        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
+            GamePlayer p = gamePlayers.get(iPlayer);
+            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
+                Drone drone = p.drones.get(iDrone);
 
                 if (drone.dead) {
                     drone.lightOn = false;
@@ -578,8 +595,10 @@ public class Game {
     }
 
     private void doScan() {
-        for (GamePlayer gamePlayer : gamePlayers) {
-            for (Drone drone : gamePlayer.drones) {
+        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
+            GamePlayer gamePlayer = gamePlayers.get(iPlayer);
+            for (iDrone = 0; iDrone < gamePlayer.drones.size(); iDrone++) {
+                Drone drone = gamePlayer.drones.get(iDrone);
                 if (drone.isDeadOrDying()) {
                     continue;
                 }
@@ -928,8 +947,10 @@ public class Game {
     }
 
     private void computeScoreOnEnd() {
-        for (GamePlayer gamePlayer : gamePlayers) {
-            for (Drone drone : gamePlayer.drones) {
+        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
+            GamePlayer gamePlayer = gamePlayers.get(iPlayer);
+            for (iDrone = 0; iDrone < gamePlayer.drones.size(); iDrone++) {
+                Drone drone = gamePlayer.drones.get(iDrone);
                 applyScansForReport(gamePlayer, drone);
             }
             detectFirstToComboBonuses(gamePlayer);

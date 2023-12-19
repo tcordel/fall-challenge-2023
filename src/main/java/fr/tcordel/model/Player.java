@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -18,20 +19,40 @@ public class Player {
 		Scanner in = new Scanner(System.in);
 		int creatureCount = in.nextInt();
 		game.fishes = new ArrayList<>(creatureCount);
-		game.uglies = Collections.emptyList();
+		game.uglies = new ArrayList<>(creatureCount);
 		Set<Integer> scans = new HashSet<>();
 		var fishes = new HashMap<Integer, Fish>();
+		var uglies = new HashMap<Integer, Ugly>();
 		var drones = new HashMap<Integer, Drone>();
 
 		for (int i = 0; i < creatureCount; i++) {
 			int creatureId = in.nextInt();
 			int color = in.nextInt();
 			int type = in.nextInt();
-			Fish fish = new Fish(creatureId, color, FishType.values()[type]);
-			fishes.put(creatureId, fish);
-			game.fishes.add(fish);
+			if (type >= 0) {
+				Fish fish = new Fish(creatureId, color, FishType.values()[type]);
+				fishes.put(creatureId, fish);
+				game.fishes.add(fish);
+			} else {
+				Ugly ugly = new Ugly(0, 0, creatureId);
+				game.uglies.add(ugly);
+				uglies.put(creatureId, ugly);
+			}
 		}
 
+		List<List<Vector>> targets = List.of(
+			List.of(
+		new Vector(8500, 5000),
+		new Vector(8500, 8500),
+		new Vector(1500, 8500),
+			new Vector(1500, 5000),
+			new Vector(5000, 0)
+		), List.of(
+				new Vector(1500, 5000),
+				new Vector(8500, 5000),
+				new Vector(5000, 0)
+			));
+		int[] targetIndex = new int[] {0, 0};
 		game.gamePlayers = List.of(new GamePlayer(), new GamePlayer());
 		// game loop
 		while (true) {
@@ -101,9 +122,17 @@ public class Player {
 				int creatureY = in.nextInt();
 				int creatureVx = in.nextInt();
 				int creatureVy = in.nextInt();
-				Fish fish = fishes.get(creatureId);
-				fish.pos = new Vector(creatureX, creatureY);
-				fish.speed = new Vector(creatureVx, creatureVy);
+				Vector pos = new Vector(creatureX, creatureY);
+				Vector speed = new Vector(creatureVx, creatureVy);
+				if (fishes.containsKey(creatureId)) {
+					Fish fish = fishes.get(creatureId);
+					fish.pos = pos;
+					fish.speed = speed;
+				} else if (uglies.containsKey(creatureId)) {
+					Ugly ugly = uglies.get(creatureId);
+					ugly.pos = pos;
+					ugly.speed = speed;
+				}
 			}
 			int radarBlipCount = in.nextInt();
 			for (int i = 0; i < radarBlipCount; i++) {
@@ -114,29 +143,22 @@ public class Player {
 
 //			game.performGameUpdate(0);
 			for (int i = 0; i < myDroneCount; i++) {
-				Drone drone = game.gamePlayers.get(0)
-					.drones.get(i);
-				Fish fish = fishes.values()
-					.stream()
-					.filter(f -> !scans.contains(f.id))
-					.sorted(Comparator.comparingDouble(f -> f.pos.manhattanTo(drone.getPos())))
-					.findFirst()
-					.orElse(null);
-
-				// Write an action using System.out.println()
-				// To debug: System.err.println("Debug messages...");
-				if (fish == null) {
-					System.out.println("WAIT 0"); // MOVE <x> <y> <light (1|0)> | WAIT <light (1|0)>
-				} else {
-					boolean inRangeOfLight = fish.getPos().euclideanTo(drone.getPos()) <= Game.LIGHT_SCAN_RANGE;
-					System.out.println("MOVE %d %d %d".formatted((int)fish.getX(), (int)fish.getY(),
-						inRangeOfLight ? 1 : 0));
-
-					if (inRangeOfLight) {
-						System.err.println("ADD fish" + fish.getId());
-						scans.add(fish.getId());
+				Drone drone = game.gamePlayers.get(0).drones.get(i);
+				List<Vector> vectors = targets.get(i);
+				Vector vector = vectors.get(targetIndex[i]);
+				if (vector.inRange(drone.pos, 100)) {
+					System.err.println("Next target for " + i + ", " + targetIndex[i]);
+					targetIndex[i]++;
+					if (targetIndex[i] >= vectors.size()) {
+						targetIndex[i] = 0;
 					}
+					vector = vectors.get(targetIndex[i]);
 				}
+				System.out.println("MOVE %d %d %d".formatted(
+					(int)vector.getX(),
+					(int) vector.getY(),
+					Math.random() > 0.10d ? 1 : 0
+				));
 			}
 		}
 	}

@@ -2,6 +2,7 @@ package fr.tcordel.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -279,16 +280,27 @@ public class Game {
             fish.pos = fish.pos.add(fish.getSpeed());
             snapToFishZone(fish);
         }
-        List<Fish> fishToRemove = fishes.stream().filter(
-            fish -> fish.getPos().getX() > WIDTH - 1 || fish.getPos().getX() < 0
-        ).collect(Collectors.toList());
-        for (iFish = 0; iFish < fishToRemove.size(); iFish++) {
-            Fish fish = fishes.get(iFish);
-            if (fish.fleeingFromPlayer != null && fish.fleeingFromPlayer != -1) {
-                chasedFishCount[fish.fleeingFromPlayer] += 1;
+        Iterator<Fish> iterator = fishes.iterator();
+        while (iterator.hasNext()) {
+            Fish fish = iterator.next();
+            if (fish.getPos().getX() > WIDTH - 1 || fish.getPos().getX() < 0) {
+                if (fish.fleeingFromPlayer != null && fish.fleeingFromPlayer != -1) {
+                    chasedFishCount[fish.fleeingFromPlayer] += 1;
+                }
+                iterator.remove();
             }
         }
-        fishes.removeAll(fishToRemove);
+
+//        List<Fish> fishToRemove = fishes.stream().filter(
+//            fish -> fish.getPos().getX() > WIDTH - 1 || fish.getPos().getX() < 0
+//        ).collect(Collectors.toList());
+//        for (iFish = 0; iFish < fishToRemove.size(); iFish++) {
+//            Fish fish = fishes.get(iFish);
+//            if (fish.fleeingFromPlayer != null && fish.fleeingFromPlayer != -1) {
+//                chasedFishCount[fish.fleeingFromPlayer] += 1;
+//            }
+//        }
+//        fishes.removeAll(fishToRemove);
         for (iFish = 0; iFish < fishes.size(); iFish++) {
             fishes.get(iFish).fleeingFromPlayer = null;
         }
@@ -982,7 +994,7 @@ public class Game {
         int total = 0;
         for (Scan scan : p.scans) {
             total += scan.type.ordinal() + 1;
-            if (Objects.equals(firstToScan.get(scan), p.getIndex())) {
+            if (firstToScan.get(scan) == p.getIndex()) {
                 total += scan.type.ordinal() + 1;
             }
         }

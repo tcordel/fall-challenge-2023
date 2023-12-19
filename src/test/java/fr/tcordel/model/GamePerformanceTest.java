@@ -14,7 +14,7 @@ public class GamePerformanceTest {
 			{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 		Game game = GameUtils.initGame(-8103073722892937000L);
 
-		for (int i = 0; i < Game.MAX_TURNS; i++) {
+		for (int i = 0; i < Game.MAX_TURNS*1000; i++) {
 			game.performGameUpdate(i);
 		}
 	}

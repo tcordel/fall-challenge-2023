@@ -12,7 +12,7 @@ public class Drone implements Entity {
     int light;
     int battery;
     List<Scan> scans;
-    List<Integer> fishesScannedThisTurn;
+//    List<Integer> fishesScannedThisTurn;
     boolean lightSwitch;
     boolean lightOn;
     boolean dying;
@@ -41,7 +41,7 @@ public class Drone implements Entity {
         dead = false;
         didReport = false;
         lightOn = false;
-        fishesScannedThisTurn = new ArrayList<>();
+//        fishesScannedThisTurn = new ArrayList<>();
         message = "";
     }
 

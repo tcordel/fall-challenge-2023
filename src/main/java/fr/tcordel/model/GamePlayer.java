@@ -12,14 +12,14 @@ public class GamePlayer extends AbstractMultiplayerPlayer {
 	String message;
 	List<Drone> drones;
 	Set<Scan> scans;
-	Set<Fish> visibleFishes;
+//	Set<Fish> visibleFishes;
 
 	List<Integer> countFishSaved;
 	int points = 0;
 
 	public GamePlayer() {
 		drones = new ArrayList<>();
-		visibleFishes = new LinkedHashSet<>();
+//		visibleFishes = new LinkedHashSet<>();
 		scans = new LinkedHashSet<>();
 		countFishSaved = new ArrayList<Integer>();
 	}
@@ -37,7 +37,7 @@ public class GamePlayer extends AbstractMultiplayerPlayer {
 		message = null;
 		drones.forEach(d -> {
 			d.move = null;
-			d.fishesScannedThisTurn.clear();
+//			d.fishesScannedThisTurn.clear();
 			d.didReport = false;
 			d.message = "";
 		});

@@ -72,10 +72,10 @@ public class Serializer {
                         drone.message
                     )
                 );
-                lines.add(drone.fishesScannedThisTurn.size());
-                for (int id : drone.fishesScannedThisTurn) {
-                    lines.add(id);
-                }
+//                lines.add(drone.fishesScannedThisTurn.size());
+//                for (int id : drone.fishesScannedThisTurn) {
+//                    lines.add(id);
+//                }
 
                 lines.add(drone.scans.size());
                 for (Scan scan : drone.scans) {
@@ -240,14 +240,14 @@ public class Serializer {
             .collect(Collectors.toList());
 
         // Visible fish
-        lines.add(String.valueOf(gamePlayer.visibleFishes.size() + visibleUglies.size()));
-
-        gamePlayer.visibleFishes.stream()
-            .forEach(fish -> {
-                lines.add(
-                    Serializer.join(fish.id, fish.getPos().toIntString(), fish.speed.toIntString())
-                );
-            });
+//        lines.add(String.valueOf(gamePlayer.visibleFishes.size() + visibleUglies.size()));
+//
+//        gamePlayer.visibleFishes.stream()
+//            .forEach(fish -> {
+//                lines.add(
+//                    Serializer.join(fish.id, fish.getPos().toIntString(), fish.speed.toIntString())
+//                );
+//            });
         visibleUglies.forEach(ugly -> {
             lines.add(
                 Serializer.join(ugly.id, ugly.getPos().toIntString(), ugly.speed.toIntString())

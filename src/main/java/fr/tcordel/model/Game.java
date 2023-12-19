@@ -9,15 +9,13 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import fr.tcordel.bridge.GameSummaryManager;
+import static fr.tcordel.model.FishType.FISH_TYPE_VALUES;
 
 public class Game {
 
-    static int iPlayer, iDrone, iUglies, iFish, iScan, n, o = 0;
+    static int iPlayer, iDrone, iUglies, iFish, iScan, iFishType, o = 0;
 
     Random random;
-    private GameSummaryManager gameSummaryManager = new GameSummaryManager();
-
     List<GamePlayer> gamePlayers;
     List<Fish> fishes;
     List<Ugly> uglies;
@@ -94,11 +92,11 @@ public class Game {
         initFish();
         initUglies();
 
-        for (GamePlayer gamePlayer : gamePlayers) {
-            if (SIMPLE_SCANS) {
-                gamePlayer.visibleFishes.addAll(fishes);
-            }
-        }
+        //        for (GamePlayer gamePlayer : gamePlayers) {
+        //            if (SIMPLE_SCANS) {
+        //                gamePlayer.visibleFishes.addAll(fishes);
+        //            }
+        //        }
     }
 
     private void initUglies() {
@@ -498,7 +496,7 @@ public class Game {
     }
 
     public void performGameUpdate(int frameIdx) {
-        clearPlayerInfo();
+        //        clearPlayerInfo();
         doBatteries();
 
         // Update speeds
@@ -527,10 +525,10 @@ public class Game {
         gameTurn++;
     }
 
-    private void clearPlayerInfo() {
-        gamePlayers.stream().forEach(p -> p.visibleFishes.clear());
-
-    }
+    //    private void clearPlayerInfo() {
+    //        gamePlayers.stream().forEach(p -> p.visibleFishes.clear());
+    //
+    //    }
 
     private void upkeepDrones() {
         for (iPlayer = 0; iPlayer < 2; iPlayer++) {
@@ -575,12 +573,12 @@ public class Game {
                 if (drone.lightSwitch && drone.battery >= Game.LIGHT_BATTERY_COST && !drone.dead) {
                     drone.lightOn = true;
                 } else {
-                    if (drone.lightSwitch && !drone.dead) {
+                    //                    if (drone.lightSwitch && !drone.dead) {
 //                        gameSummaryManager.addPlayerSummary(
 //                            gamePlayer.getNicknameToken(),
 //                            gamePlayer.getNicknameToken() + "'s drone " + drone.id + " does not have enough battery to activate light"
 //                        );
-                    }
+                    //                    }
                     drone.lightOn = false;
                 }
 
@@ -603,40 +601,55 @@ public class Game {
                     continue;
                 }
 
-                List<Fish> scannableFish = fishes.stream()
-                    .filter(fish -> fish.pos.inRange(drone.pos, drone.isLightOn() ? LIGHT_SCAN_RANGE : DARK_SCAN_RANGE))
-                    .collect(Collectors.toList());
-
-                scannableFish.forEach(fish -> {
-                    gamePlayer.visibleFishes.add(fish);
+                for (iFish = 0; iFish < fishes.size(); iFish++) {
+                    Fish fish = fishes.get(iFish);
+                    if (!fish.pos.inRange(drone.pos, drone.isLightOn() ? LIGHT_SCAN_RANGE : DARK_SCAN_RANGE)) {
+                        continue;
+                    }
+                    //                    gamePlayer.visibleFishes.add(fish);
 
                     if (drone.scans.size() < DRONE_MAX_SCANS) {
                         Scan scan = new Scan(fish);
-                        if (!gamePlayer.scans.contains(scan)) {
-                            if (!drone.scans.contains(scan)) {
+                        if (!gamePlayer.scans.contains(scan)
+                            && (!drone.scans.contains(scan))) {
                                 drone.scans.add(scan);
-                                drone.fishesScannedThisTurn.add(fish.id);
-                            }
+                            //                                drone.fishesScannedThisTurn.add(fish.id);
+
                         }
                     }
-                });
-
-                if (SIMPLE_SCANS) {
-                    gamePlayer.visibleFishes.addAll(fishes);
                 }
+                //                fishes.stream()
+                //                    .filter(fish1 -> fish1.pos.inRange(drone.pos, drone.isLightOn() ? LIGHT_SCAN_RANGE : DARK_SCAN_RANGE))
+                //                    .forEach(fish -> {
+                //                    gamePlayer.visibleFishes.add(fish);
+                //
+                //                    if (drone.scans.size() < DRONE_MAX_SCANS) {
+                //                        Scan scan = new Scan(fish);
+                //                        if (!gamePlayer.scans.contains(scan)) {
+                //                            if (!drone.scans.contains(scan)) {
+                //                                drone.scans.add(scan);
+                //                                drone.fishesScannedThisTurn.add(fish.id);
+                //                            }
+                //                        }
+                //                    }
+                //                });
 
-                if (drone.fishesScannedThisTurn.size() > 0) {
-                    String summaryScan = drone.fishesScannedThisTurn.stream().map(fishScan -> {
-                        return Integer.toString(fishScan);
-                    }).collect((Collectors.joining(",")));
-                    if (drone.fishesScannedThisTurn.size() == 1) {
+                //                if (SIMPLE_SCANS) {
+                //                    gamePlayer.visibleFishes.addAll(fishes);
+                //                }
+
+                //                if (drone.fishesScannedThisTurn.size() > 0) {
+                //                    String summaryScan = drone.fishesScannedThisTurn.stream().map(fishScan -> {
+                //                        return Integer.toString(fishScan);
+                //                    }).collect((Collectors.joining(",")));
+                //                    if (drone.fishesScannedThisTurn.size() == 1) {
 //                        gameSummaryManager.addPlayerSummary(
 //                            gamePlayer.getNicknameToken(),
 //                            String.format(
 //                                "%s's drone %d scans fish %d", gamePlayer.getNicknameToken(), drone.id, drone.fishesScannedThisTurn.get(0)
 //                            )
 //                        );
-                    } else {
+                //                    } else {
 //                        gameSummaryManager.addPlayerSummary(
 //                            gamePlayer.getNicknameToken(),
 //                            String.format(
@@ -644,16 +657,17 @@ public class Game {
 //                                summaryScan
 //                            )
 //                        );
-                    }
-                }
+                //                    }
+                //                }
             }
         }
 
     }
 
     private boolean applyScansForReport(GamePlayer gamePlayer, Drone drone) {
-        boolean pointsScored = false;
-        for (Scan scan : drone.scans) {
+        boolean pointsScored;
+        for (iScan = 0; iScan < drone.scans.size(); iScan++) {
+            Scan scan = drone.scans.get(iScan);
             if (!firstToScan.containsKey(scan)) {
                 if (firstToScanTemp.containsKey(scan)) {
                     // Opponent also completed this report this turn, nobody gets the bonus
@@ -666,10 +680,10 @@ public class Game {
             turnSavedFish[gamePlayer.getIndex()][fishIndex] = gameTurn;
             fishScanned++;
         }
-        if (drone.scans.size() > 0) {
+        if (!drone.scans.isEmpty()) {
             gamePlayer.countFishSaved.add(drone.scans.size());
         }
-        pointsScored |= gamePlayer.scans.addAll(drone.scans);
+        pointsScored = gamePlayer.scans.addAll(drone.scans);
         for (Drone other : gamePlayer.drones) {
             if (drone != other) {
                 other.scans.removeAll(drone.scans);
@@ -734,34 +748,33 @@ public class Game {
     }
 
     private void persistFirstToScanBonuses() {
-        Map<String, List<Scan>> playerScansMap = new HashMap<String, List<Scan>>();
+//        Map<String, List<Scan>> playerScansMap = new HashMap<String, List<Scan>>();
 
         firstToScanTemp.forEach((k, v) -> {
             firstToScan.putIfAbsent(k, v);
-
-            String playerName = gamePlayers.get(v).getNicknameToken();
-            playerScansMap.putIfAbsent(playerName, new ArrayList<Scan>());
-            playerScansMap.get(playerName).add(k);
+//            String playerName = gamePlayers.get(v).getNicknameToken();
+//            playerScansMap.putIfAbsent(playerName, new ArrayList<Scan>());
+//            playerScansMap.get(playerName).add(k);
         });
-        playerScansMap.entrySet().forEach(playerScans -> {
-            String summaryString = playerScans.getValue().stream().map(scan -> String.valueOf(scan.fishId))
-                .collect(Collectors.joining(", "));
-            if (playerScans.getValue().size() == 1) {
+//        playerScansMap.entrySet().forEach(playerScans -> {
+//            String summaryString = playerScans.getValue().stream().map(scan -> String.valueOf(scan.fishId))
+//                .collect(Collectors.joining(", "));
+//            if (playerScans.getValue().size() == 1) {
 //                gameSummaryManager.addPlayerSummary(
 //                    playerScans.getKey(),
 //                    String.format(
 //                        "%s was the first to save the scan of creature %s", playerScans.getKey(), summaryString
 //                    )
 //                );
-            } else {
+//            } else {
 //                gameSummaryManager.addPlayerSummary(
 //                    playerScans.getKey(),
 //                    String.format(
 //                        "%s was the first to save the scans of %d creatures: %s", playerScans.getKey(), playerScans.getValue().size(), summaryString
 //                    )
 //                );
-            }
-        });
+//            }
+//        });
         firstToScanAllFishOfTypeTemp.forEach((k, v) -> {
             firstToScanAllFishOfType.putIfAbsent(k, v);
 
@@ -807,7 +820,19 @@ public class Game {
     }
 
     private boolean hasFishEscaped(Scan scan) {
-        return !fishes.stream().filter(fish -> fish.color == scan.color && fish.type == scan.type).findFirst().isPresent();
+        boolean value = true;
+        for (iFish = 0; iFish < fishes.size(); iFish ++) {
+            Fish fish = fishes.get(iFish);
+            if (fish.color == scan.color && fish.type == scan.type) {
+                value = false;
+                break;
+            }
+        }
+//        boolean b = fishes.stream().noneMatch(fish -> fish.color == scan.color && fish.type == scan.type);
+//        if (b) {
+//            String a = "";
+//        }
+        return value;
     }
 
     private boolean isFishScannedByPlayerDrone(Scan scan, GamePlayer gamePlayer) {
@@ -900,8 +925,9 @@ public class Game {
     }
 
     private boolean playerScannedAllFishOfColor(GamePlayer gamePlayer, int color) {
-        for (FishType type : FishType.values()) {
-            if (!playerScanned(gamePlayer, new Scan(type, color))) {
+
+        for (iFishType = 0; iFishType < FISH_TYPE_VALUES.length; iFishType ++) {
+            if (!playerScanned(gamePlayer, new Scan(FISH_TYPE_VALUES[iFishType], color))) {
                 return false;
             }
         }

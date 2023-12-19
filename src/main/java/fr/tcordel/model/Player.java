@@ -1,14 +1,6 @@
 package fr.tcordel.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class Player {
 
@@ -21,9 +13,13 @@ public class Player {
 		game.fishes = new ArrayList<>(creatureCount);
 		game.uglies = new ArrayList<>(creatureCount);
 		Set<Integer> scans = new HashSet<>();
+		Set<Integer> visibleUnits = new HashSet<>();
 		var fishes = new HashMap<Integer, Fish>();
 		var uglies = new HashMap<Integer, Ugly>();
 		var drones = new HashMap<Integer, Drone>();
+
+		Radar[] radars = new Radar[2];
+		Map<Integer, Integer> droneIdToIndex = new HashMap<>();
 
 		for (int i = 0; i < creatureCount; i++) {
 			int creatureId = in.nextInt();
@@ -40,19 +36,19 @@ public class Player {
 			}
 		}
 
-		List<List<Vector>> targets = List.of(
-			List.of(
-		new Vector(8500, 5000),
-		new Vector(8500, 8500),
-		new Vector(1500, 8500),
-			new Vector(1500, 5000),
-			new Vector(5000, 0)
-		), List.of(
-				new Vector(1500, 5000),
-				new Vector(8500, 5000),
-				new Vector(5000, 0)
-			));
-		int[] targetIndex = new int[] {0, 0};
+		//		List<List<Vector>> targets = List.of(
+		//			List.of(
+		//		new Vector(8500, 5000),
+		//		new Vector(8500, 8500),
+		//		new Vector(1500, 8500),
+		//			new Vector(1500, 5000),
+		//			new Vector(5000, 0)
+		//		), List.of(
+		//				new Vector(1500, 5000),
+		//				new Vector(8500, 5000),
+		//				new Vector(5000, 0)
+		//			));
+		//		int[] targetIndex = new int[] {0, 0};
 		game.gamePlayers = List.of(new GamePlayer(), new GamePlayer());
 		// game loop
 		while (true) {
@@ -62,10 +58,14 @@ public class Player {
 			game.gamePlayers.get(1).setScore(foeScore);
 
 			int myScanCount = in.nextInt();
+			scans.clear();
+			visibleUnits.clear();
+			Arrays.fill(radars, null);
 			game.gamePlayers.get(0).scans.clear();
 			for (int i = 0; i < myScanCount; i++) {
 				int creatureId = in.nextInt();
 				game.gamePlayers.get(0).scans.add(new Scan(fishes.get(creatureId)));
+				scans.add(creatureId);
 			}
 			int foeScanCount = in.nextInt();
 			game.gamePlayers.get(1).scans.clear();
@@ -84,6 +84,7 @@ public class Player {
 					Drone drone = new Drone(droneX, droneY, droneId, game.gamePlayers.get(0));
 					game.gamePlayers.get(0).drones.add(drone);
 					drones.put(droneId, drone);
+					droneIdToIndex.put(droneId, i);
 				}
 
 				Drone drone = game.gamePlayers.get(0).drones.get(i);
@@ -114,6 +115,7 @@ public class Player {
 				System.err.println("Scanned " + droneId + "-" + creatureId);
 				Scan e = new Scan(fishes.get(creatureId));
 				drones.get(droneId).scans.add(e);
+				scans.add(creatureId);
 			}
 			int visibleCreatureCount = in.nextInt();
 			for (int i = 0; i < visibleCreatureCount; i++) {
@@ -124,6 +126,7 @@ public class Player {
 				int creatureVy = in.nextInt();
 				Vector pos = new Vector(creatureX, creatureY);
 				Vector speed = new Vector(creatureVx, creatureVy);
+				visibleUnits.add(creatureId);
 				if (fishes.containsKey(creatureId)) {
 					Fish fish = fishes.get(creatureId);
 					fish.pos = pos;
@@ -139,27 +142,38 @@ public class Player {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
 				String radar = in.next();
+				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
+				if (fishes.containsKey(creatureId)
+					&& radars[droneIdToIndex.get(droneId)] == null) {
+					radars[droneIdToIndex.get(droneId)] = new Radar(creatureId, RadarDirection.valueOf(radar));
+				}
 			}
 
-//			game.performGameUpdate(0);
 			for (int i = 0; i < myDroneCount; i++) {
 				Drone drone = game.gamePlayers.get(0).drones.get(i);
-				List<Vector> vectors = targets.get(i);
-				Vector vector = vectors.get(targetIndex[i]);
-				if (vector.inRange(drone.pos, 100)) {
-					System.err.println("Next target for " + i + ", " + targetIndex[i]);
-					targetIndex[i]++;
-					if (targetIndex[i] >= vectors.size()) {
-						targetIndex[i] = 0;
-					}
-					vector = vectors.get(targetIndex[i]);
+
+				Radar radar = radars[i];
+				if (radar == null) {
+					System.out.println("MOVE %d %d %d UP".formatted(
+						(int)drone.getX(),
+						(int)drone.getY() - 800,
+						0
+					));
+					continue;
 				}
-				System.out.println("MOVE %d %d %d".formatted(
+
+				Vector vector = drone.getPos().add(radar.radarDirection().getDirection());
+				boolean turnOnlight = radar.radarDirection() == RadarDirection.TL || radar.radarDirection() == RadarDirection.TR;
+				System.out.println("MOVE %d %d %d Aiming %d".formatted(
 					(int)vector.getX(),
 					(int) vector.getY(),
-					Math.random() > 0.10d ? 1 : 0
+					turnOnlight ? 1 : 0,
+					radar.creatureId
 				));
 			}
 		}
+	}
+
+	record Radar(int creatureId, RadarDirection radarDirection) {
 	}
 }

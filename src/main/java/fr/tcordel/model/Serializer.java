@@ -254,7 +254,7 @@ public class Serializer {
             );
         });
 
-        // Radar blips
+        // RadarDirection blips
         lines.add(String.valueOf(Game.DRONES_PER_PLAYER * (fishes.size() + uglies.size())));
 
         for (Drone drone : gamePlayer.drones) {

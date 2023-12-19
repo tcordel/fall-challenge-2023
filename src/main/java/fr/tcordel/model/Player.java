@@ -5,6 +5,7 @@ import java.util.*;
 public class Player {
 
 	static Game game = new Game();
+	static DownAndUp downAndUp = new DownAndUp(game);
 	public static boolean FIRST_ROUND = true;
 
 	public static void main(String args[]) {
@@ -14,11 +15,8 @@ public class Player {
 		game.uglies = new ArrayList<>(creatureCount);
 		Set<Integer> scans = new HashSet<>();
 		Set<Integer> visibleUnits = new HashSet<>();
-		var fishes = new HashMap<Integer, Fish>();
-		var uglies = new HashMap<Integer, Ugly>();
-		var drones = new HashMap<Integer, Drone>();
 
-		Radar[] radars = new Radar[2];
+
 		Map<Integer, Integer> droneIdToIndex = new HashMap<>();
 
 		for (int i = 0; i < creatureCount; i++) {
@@ -27,28 +25,24 @@ public class Player {
 			int type = in.nextInt();
 			if (type >= 0) {
 				Fish fish = new Fish(creatureId, color, FishType.values()[type]);
-				fishes.put(creatureId, fish);
+				game.fishesMap.put(creatureId, fish);
 				game.fishes.add(fish);
 			} else {
 				Ugly ugly = new Ugly(0, 0, creatureId);
 				game.uglies.add(ugly);
-				uglies.put(creatureId, ugly);
+				game.ugliesMap.put(creatureId, ugly);
 			}
 		}
-
-		//		List<List<Vector>> targets = List.of(
-		//			List.of(
-		//		new Vector(8500, 5000),
-		//		new Vector(8500, 8500),
-		//		new Vector(1500, 8500),
-		//			new Vector(1500, 5000),
-		//			new Vector(5000, 0)
-		//		), List.of(
-		//				new Vector(1500, 5000),
-		//				new Vector(8500, 5000),
-		//				new Vector(5000, 0)
-		//			));
-		//		int[] targetIndex = new int[] {0, 0};
+		Radar[] radars = null;
+		List<Vector>[] targets = new List[] {
+			List.of(
+				new Vector(2500, 9000),
+				new Vector(2500, 0)
+			), List.of(
+				new Vector(7500, 9000),
+				new Vector(7500, 0)
+			)};
+		int[] targetIndex = new int[] {0, 0};
 		game.gamePlayers = List.of(new GamePlayer(), new GamePlayer());
 		// game loop
 		while (true) {
@@ -60,20 +54,29 @@ public class Player {
 			int myScanCount = in.nextInt();
 			scans.clear();
 			visibleUnits.clear();
-			Arrays.fill(radars, null);
+
 			game.gamePlayers.get(0).scans.clear();
 			for (int i = 0; i < myScanCount; i++) {
 				int creatureId = in.nextInt();
-				game.gamePlayers.get(0).scans.add(new Scan(fishes.get(creatureId)));
+				game.gamePlayers.get(0).scans.add(new Scan(game.fishesMap.get(creatureId)));
 				scans.add(creatureId);
 			}
 			int foeScanCount = in.nextInt();
 			game.gamePlayers.get(1).scans.clear();
 			for (int i = 0; i < foeScanCount; i++) {
 				int creatureId = in.nextInt();
-				game.gamePlayers.get(1).scans.add(new Scan(fishes.get(creatureId)));
+				game.gamePlayers.get(1).scans.add(new Scan(game.fishesMap.get(creatureId)));
 			}
 			int myDroneCount = in.nextInt();
+			if (FIRST_ROUND) {
+				radars = new Radar[myDroneCount];
+				for (int i = 0; i < myDroneCount; i++) {
+					radars[i] = new Radar();
+				}
+			}
+			for (Radar radar : radars) {
+				radar.reset();
+			}
 			for (int i = 0; i < myDroneCount; i++) {
 				int droneId = in.nextInt();
 				int droneX = in.nextInt();
@@ -81,9 +84,16 @@ public class Player {
 				int emergency = in.nextInt();
 				int battery = in.nextInt();
 				if (FIRST_ROUND) {
+					if (i == 0 && droneX > (Game.WIDTH / 2)) {
+						downAndUp.leftIndex = 1;
+						System.err.println("switching targets " + droneId + ", " + droneX);
+						List<Vector> tmp = targets[0];
+						targets[0] = targets[1];
+						targets[1] = tmp;
+					}
 					Drone drone = new Drone(droneX, droneY, droneId, game.gamePlayers.get(0));
 					game.gamePlayers.get(0).drones.add(drone);
-					drones.put(droneId, drone);
+					game.dronesMap.put(droneId, drone);
 					droneIdToIndex.put(droneId, i);
 				}
 
@@ -101,20 +111,20 @@ public class Player {
 				if (FIRST_ROUND) {
 					Drone drone = new Drone(droneX, droneY, droneId, game.gamePlayers.get(1));
 					game.gamePlayers.get(1).drones.add(drone);
-					drones.put(droneId, drone);
+					game.dronesMap.put(droneId, drone);
 				}
 				Drone drone = game.gamePlayers.get(1).drones.get(i);
 				drone.pos = new Vector(droneX, droneY);
 				drone.battery = battery;
 			}
 			int droneScanCount = in.nextInt();
-			drones.values().forEach(drone -> drone.scans.clear());
+			game.dronesMap.values().forEach(drone -> drone.scans.clear());
 			for (int i = 0; i < droneScanCount; i++) {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
 				System.err.println("Scanned " + droneId + "-" + creatureId);
-				Scan e = new Scan(fishes.get(creatureId));
-				drones.get(droneId).scans.add(e);
+				Scan e = new Scan(game.fishesMap.get(creatureId));
+				game.dronesMap.get(droneId).scans.add(e);
 				scans.add(creatureId);
 			}
 			int visibleCreatureCount = in.nextInt();
@@ -127,12 +137,12 @@ public class Player {
 				Vector pos = new Vector(creatureX, creatureY);
 				Vector speed = new Vector(creatureVx, creatureVy);
 				visibleUnits.add(creatureId);
-				if (fishes.containsKey(creatureId)) {
-					Fish fish = fishes.get(creatureId);
+				if (game.fishesMap.containsKey(creatureId)) {
+					Fish fish = game.fishesMap.get(creatureId);
 					fish.pos = pos;
 					fish.speed = speed;
-				} else if (uglies.containsKey(creatureId)) {
-					Ugly ugly = uglies.get(creatureId);
+				} else if (game.ugliesMap.containsKey(creatureId)) {
+					Ugly ugly = game.ugliesMap.get(creatureId);
 					ugly.pos = pos;
 					ugly.speed = speed;
 				}
@@ -143,37 +153,51 @@ public class Player {
 				int creatureId = in.nextInt();
 				String radar = in.next();
 				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
-				if (fishes.containsKey(creatureId)
-					&& radars[droneIdToIndex.get(droneId)] == null) {
-					radars[droneIdToIndex.get(droneId)] = new Radar(creatureId, RadarDirection.valueOf(radar));
-				}
+				radars[droneIdToIndex.get(droneId)].populate(creatureId, RadarDirection.valueOf(radar));
 			}
 
-			for (int i = 0; i < myDroneCount; i++) {
-				Drone drone = game.gamePlayers.get(0).drones.get(i);
 
-				Radar radar = radars[i];
-				if (radar == null) {
-					System.out.println("MOVE %d %d %d UP".formatted(
-						(int)drone.getX(),
-						(int)drone.getY() - 800,
-						0
-					));
-					continue;
-				}
+//			for (int i = 0; i < myDroneCount; i++) {
+//				Drone drone = game.gamePlayers.get(0).drones.get(i);
 
-				Vector vector = drone.getPos().add(radar.radarDirection().getDirection());
-				boolean turnOnlight = radar.radarDirection() == RadarDirection.TL || radar.radarDirection() == RadarDirection.TR;
-				System.out.println("MOVE %d %d %d Aiming %d".formatted(
-					(int)vector.getX(),
-					(int) vector.getY(),
-					turnOnlight ? 1 : 0,
-					radar.creatureId
-				));
-			}
+//				Radar radar = radars[i];
+//				if (radar == null) {
+//					System.out.println("MOVE %d %d %d UP".formatted(
+//						(int)drone.getX(),
+//						(int)drone.getY() - 800,
+//						0
+//					));
+//					continue;
+//				}
+//
+//				Vector vector = drone.getPos().add(radar.radarDirection().getDirection());
+//				boolean turnOnlight = radar.radarDirection() == RadarDirection.TL || radar.radarDirection() == RadarDirection.TR;
+//				System.out.println("MOVE %d %d %d Aiming %d".formatted(
+//					(int)vector.getX(),
+//					(int) vector.getY(),
+//					turnOnlight ? 1 : 0,
+//					radar.creatureId
+//				));
+
+//				List<Vector> vectors = targets[i];
+//				Vector vector = vectors.get(targetIndex[i]);
+//				if (vector.inRange(drone.pos, 100)) {
+//					System.err.println("Next target for " + i + ", " + targetIndex[i]);
+//					targetIndex[i]++;
+//					if (targetIndex[i] >= vectors.size()) {
+//						targetIndex[i] = 0;
+//					}
+//					vector = vectors.get(targetIndex[i]);
+//				}
+//				System.out.println("MOVE %d %d %d".formatted(
+//					(int)vector.getX(),
+//					(int) vector.getY(),
+//					Math.random() > 0.10d ? 1 : 0
+//				));
+//			}
+			downAndUp.process(radars, scans);
+			FIRST_ROUND = false;
 		}
 	}
 
-	record Radar(int creatureId, RadarDirection radarDirection) {
-	}
 }

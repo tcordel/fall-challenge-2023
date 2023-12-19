@@ -20,6 +20,10 @@ public class Game {
     List<Fish> fishes;
     List<Ugly> uglies;
 
+    Map<Integer, Fish> fishesMap = new HashMap<Integer, Fish>();
+    Map<Integer, Ugly> ugliesMap = new HashMap<Integer, Ugly>();
+    Map<Integer, Drone> dronesMap = new HashMap<Integer, Drone>();
+
     Map<Scan, Integer> firstToScan = new HashMap<>();
     Map<Scan, Integer> firstToScanTemp = new HashMap<>();
 

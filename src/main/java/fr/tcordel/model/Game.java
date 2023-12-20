@@ -20,9 +20,11 @@ public class Game {
     List<Fish> fishes;
     List<Ugly> uglies;
 
-    Map<Integer, Fish> fishesMap = new HashMap<Integer, Fish>();
-    Map<Integer, Ugly> ugliesMap = new HashMap<Integer, Ugly>();
-    Map<Integer, Drone> dronesMap = new HashMap<Integer, Drone>();
+    public List<Fish> visibleFishes;
+    public List<Ugly> visibleUglies;
+    public Map<Integer, Fish> fishesMap = new HashMap<Integer, Fish>();
+    public Map<Integer, Ugly> ugliesMap = new HashMap<Integer, Ugly>();
+    public Map<Integer, Drone> dronesMap = new HashMap<Integer, Drone>();
 
     Map<Scan, Integer> firstToScan = new HashMap<>();
     Map<Scan, Integer> firstToScanTemp = new HashMap<>();
@@ -500,24 +502,32 @@ public class Game {
         for (iPlayer = 0; iPlayer < 2; iPlayer++) {
             GamePlayer p = gamePlayers.get(iPlayer);
             for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
-                Drone drone = p.drones.get(iDrone);
-                int moveSpeed = (int) (DRONE_MOVE_SPEED - DRONE_MOVE_SPEED * DRONE_MOVE_SPEED_LOSS_PER_SCAN * drone.scans.size());
-                if (drone.dead) {
-                    Vector floatVec = new Vector(0, -1).mult(DRONE_EMERGENCY_SPEED);
-                    drone.speed = floatVec;
-                } else if (drone.move != null) {
-                    Vector moveVec = new Vector(drone.pos, drone.move);
-                    if (moveVec.length() > moveSpeed) {
-                        moveVec = moveVec.normalize().mult(moveSpeed);
-                    }
-                    drone.speed = moveVec.round();
-                } else if (drone.pos.getY() < HEIGHT - 1) {
-                    Vector sinkVec = new Vector(0, 1).mult(DRONE_SINK_SPEED);
-                    drone.speed = sinkVec;
-                }
+				updateDrone(p.drones.get(iDrone));
             }
         }
 
+    }
+
+    public void updateDrone(Drone drone) {
+        int moveSpeed = getMoveSpeed(drone);
+        if (drone.dead) {
+            Vector floatVec = new Vector(0, -1).mult(DRONE_EMERGENCY_SPEED);
+            drone.speed = floatVec;
+        } else if (drone.move != null) {
+            Vector moveVec = new Vector(drone.pos, drone.move);
+            if (moveVec.length() > moveSpeed) {
+                moveVec = moveVec.normalize().mult(moveSpeed);
+            }
+            drone.speed = moveVec.round();
+        } else if (drone.pos.getY() < HEIGHT - 1) {
+            Vector sinkVec = new Vector(0, 1).mult(DRONE_SINK_SPEED);
+            drone.speed = sinkVec;
+        }
+    }
+
+    public int getMoveSpeed(Drone drone) {
+        int moveSpeed = (int) (DRONE_MOVE_SPEED - DRONE_MOVE_SPEED * DRONE_MOVE_SPEED_LOSS_PER_SCAN * drone.scans.size());
+        return moveSpeed;
     }
 
     private void snapToDroneZone(Drone drone) {

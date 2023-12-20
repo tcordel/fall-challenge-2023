@@ -14,7 +14,8 @@ public class Player {
 		game.fishes = new ArrayList<>(creatureCount);
 		game.uglies = new ArrayList<>(creatureCount);
 		Set<Integer> scans = new HashSet<>();
-		Set<Integer> visibleUnits = new HashSet<>();
+		game.visibleFishes = new ArrayList<>();
+		game.visibleUglies = new ArrayList<>();
 
 
 		Map<Integer, Integer> droneIdToIndex = new HashMap<>();
@@ -53,7 +54,8 @@ public class Player {
 
 			int myScanCount = in.nextInt();
 			scans.clear();
-			visibleUnits.clear();
+			game.visibleFishes.clear();
+			game.visibleUglies.clear();
 
 			game.gamePlayers.get(0).scans.clear();
 			for (int i = 0; i < myScanCount; i++) {
@@ -122,12 +124,14 @@ public class Player {
 			for (int i = 0; i < droneScanCount; i++) {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
-				System.err.println("Scanned " + droneId + "-" + creatureId);
+//				System.err.println("Scanned " + droneId + "-" + creatureId);
 				Scan e = new Scan(game.fishesMap.get(creatureId));
 				game.dronesMap.get(droneId).scans.add(e);
 				scans.add(creatureId);
 			}
 			int visibleCreatureCount = in.nextInt();
+			game.fishes.forEach(fish -> fish.speed = null);
+			game.uglies.forEach(ugly -> ugly.speed = null);
 			for (int i = 0; i < visibleCreatureCount; i++) {
 				int creatureId = in.nextInt();
 				int creatureX = in.nextInt();
@@ -136,15 +140,17 @@ public class Player {
 				int creatureVy = in.nextInt();
 				Vector pos = new Vector(creatureX, creatureY);
 				Vector speed = new Vector(creatureVx, creatureVy);
-				visibleUnits.add(creatureId);
+
 				if (game.fishesMap.containsKey(creatureId)) {
 					Fish fish = game.fishesMap.get(creatureId);
 					fish.pos = pos;
 					fish.speed = speed;
+					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
 					ugly.pos = pos;
 					ugly.speed = speed;
+					game.visibleUglies.add(ugly);
 				}
 			}
 			int radarBlipCount = in.nextInt();
@@ -152,7 +158,7 @@ public class Player {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
 				String radar = in.next();
-				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
+//				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
 				radars[droneIdToIndex.get(droneId)].populate(creatureId, RadarDirection.valueOf(radar));
 			}
 

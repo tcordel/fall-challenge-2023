@@ -24,19 +24,32 @@ public class DownAndUp {
 
 	Strat left = Strat.DOWN;
 	Strat right = Strat.DOWN;
+
+	boolean[] batterieToogle = new boolean[2];
 	List<Set<Integer>> allocations = List.of(new HashSet<>(), new HashSet<>());
 	public void process(Radar[] radars, Set<Integer> scans) {
 		preAllocate(radars);
 		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
 			Drone drone = game.gamePlayers.get(0).drones.get(i);
 			Vector vector = getVector(radars, scans, i, drone);
-			checkCollision(drone, vector);
+			boolean escaping = checkCollision(drone, vector);
 			System.out.printf(
 				"MOVE %d %d %d %n", (int)drone.move.getX(),
 				(int)drone.move.getY(),
-				Math.random() > 0.20d ? 1 : 0
+				switchOn(i, drone, escaping)
 								);
 		}
+	}
+
+	private int switchOn(int i, Drone drone, boolean escaping) {
+		boolean lightOn = false;
+		if (!escaping
+			&& !batterieToogle[i]
+			&& drone.getY() >= 3000) {
+			lightOn = true;
+		}
+		batterieToogle[i] = lightOn;
+		return lightOn ? 1 : 0;
 	}
 
 	private void preAllocate(Radar[] radars) {
@@ -49,39 +62,40 @@ public class DownAndUp {
 
 	}
 
-	private void checkCollision(Drone drone, Vector vector) {
+	private boolean checkCollision(Drone drone, Vector vector) {
 
 		// bug : seed=-175664990971267260
 		for (int i = 0; i < 5; i++) {
 			if (moveAndCheckNoCollision(drone, vector, i))
-				return;
+				return i > 0;
 		}
 
 		for (int i = -1; i > -5; i--) {
 			if (moveAndCheckNoCollision(drone, vector, i))
-				return;
+				return true;
 		}
 
 		for (int i = 5; i < 10; i++) {
 			if (moveAndCheckNoCollision(drone, vector, i))
-				return;
+				return true;
 		}
 
 		for (int i = -5; i > -10; i--) {
 			if (moveAndCheckNoCollision(drone, vector, i))
-				return;
+				return true;
 		}
 
 		for (int i = 10; i < 15; i++) {
 			if (moveAndCheckNoCollision(drone, vector, i))
-				return;
+				return true;
 		}
 
 		for (int i = -10; i > -15; i--) {
 			if (moveAndCheckNoCollision(drone, vector, i))
-				return;
+				return true;
 		}
 		drone.move = drone.pos.add(vector);
+		return true;
 	}
 
 	private boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i) {

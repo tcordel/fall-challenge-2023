@@ -156,7 +156,7 @@ public class DownAndUp {
 		}
 
 		int threshold = game.getMoveSpeed(drone) / 2;
-		if ((drone.getY() + threshold) >= targetting.getDeeperLimit() || (drone.getY() - threshold) <= targetting.getUpperLimit()) {
+		if ((drone.getY() - threshold) >= targetting.getDeeperLimit() || (drone.getY() + threshold) <= targetting.getUpperLimit()) {
 			System.err.println(drone.getId() + " depth too far from target type " + targetting);
 			return switch (rd) {
 				case BL -> DOWN;

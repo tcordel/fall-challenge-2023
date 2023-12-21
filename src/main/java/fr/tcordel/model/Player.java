@@ -87,13 +87,13 @@ public class Player {
 				int emergency = in.nextInt();
 				int battery = in.nextInt();
 				if (FIRST_ROUND) {
+					myDonesId.add(droneId);
 					if (i == 0 && droneX > (Game.WIDTH / 2)) {
 						downAndUp.leftIndex = 1;
 						System.err.println("switching targets " + droneId + ", " + droneX);
 						List<Vector> tmp = targets[0];
 						targets[0] = targets[1];
 						targets[1] = tmp;
-						myDonesId.add(droneId);
 					}
 					Drone drone = new Drone(droneX, droneY, droneId, game.gamePlayers.get(0));
 					game.gamePlayers.get(0).drones.add(drone);

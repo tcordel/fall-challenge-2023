@@ -102,7 +102,9 @@ public class DownAndUp {
 		boolean isLeft = leftIndex == i;
 
 		RadarDirection rd = null;
+		FishType targetting = null;
 		for (FishType fishType : FishType.FISH_ORDERED) {
+			targetting = fishType;
 			RadarDirection radarDirection = isLeft ? RadarDirection.BL : RadarDirection.BR;
 			rd = checkForType(i, fishType, isLeft ? radar.bottomLeft : radar.bottomRight, radarDirection);
 			if (rd != null) {
@@ -138,6 +140,19 @@ public class DownAndUp {
 		if (rd == null) {
 			return UP;
 		}
+
+		int threshold = game.getMoveSpeed(drone) / 2;
+		if ((drone.getY() + threshold) >= targetting.getDeeperLimit() || (drone.getY() - threshold) <= targetting.getUpperLimit()) {
+			System.err.println(drone.getId() + " depth too far from target type " + targetting);
+			return switch (rd) {
+				case BL -> DOWN;
+				case BR -> DOWN;
+				case TL -> UP;
+				case TR -> UP;
+			};
+		}
+
+
 //		boolean goToCenter = isLeft;
 		//		List<Integer> integers = isLeft ? radar.bottomLeft : radar.bottomRight;
 		//		for (Integer integer : integers) {

@@ -2,7 +2,6 @@ package fr.tcordel.model;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 public class DownAndUp {
@@ -105,40 +104,42 @@ public class DownAndUp {
 			.stream()
 			.allMatch(u -> game.getCollision(drone, u) == Collision.NONE)) {
 			return true;
-		} else {
-			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i );
+			//		} else {
+			//			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i );
 		}
 		return false;
 	}
 
 	private Vector getVector(Radar[] radars, Set<Integer> scans, int i, Drone drone) {
-		Radar radar = radars[i];
+		Radar radarForDrone = radars[i];
 		boolean isLeft = leftIndex == i;
 
 		RadarDirection rd = null;
 		FishType targetting = null;
+		Radar radarForType;
 		for (FishType fishType : FishType.FISH_ORDERED) {
+			radarForType = radarForDrone.forType(game.fishesMap, fishType);
 			targetting = fishType;
 			RadarDirection radarDirection = isLeft ? RadarDirection.BL : RadarDirection.BR;
-			rd = checkForType(i, fishType, isLeft ? radar.bottomLeft : radar.bottomRight, radarDirection);
+			rd = checkForType(i, isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = !isLeft ? RadarDirection.BL : RadarDirection.BR;
-			rd = checkForType(i, fishType, !isLeft ? radar.bottomLeft : radar.bottomRight, radarDirection);
+			rd = checkForType(i, !isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = isLeft ? RadarDirection.TL : RadarDirection.TR;
-			rd = checkForType(i, fishType, isLeft ? radar.topLeft : radar.topRight, radarDirection);
+			rd = checkForType(i, isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = !isLeft ? RadarDirection.TL : RadarDirection.TR;
-			rd = checkForType(i, fishType, !isLeft ? radar.topLeft : radar.topRight, radarDirection);
+			rd = checkForType(i, !isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
@@ -176,8 +177,26 @@ public class DownAndUp {
 		//			}
 		//		}
 		//		RadarDirection rd = goToCenter ? RadarDirection.BR : RadarDirection.BL;
+		Vector direction = getFilteredVector(drone, rd);
+
+		return direction;
+	}
+
+	private Vector getFilteredVector(Drone drone, RadarDirection rd) {
 		Vector direction = rd.getDirection();
 		Vector vector = drone.pos.add(direction);
+		drone.move = vector;
+		boolean processFilter = game.visibleUglies.isEmpty() ||
+								game.visibleUglies
+									.stream()
+									.allMatch(u -> game.getCollision(drone, u) == Collision.NONE);
+
+		if (!processFilter) {
+			System.err.println("No filter target for " + drone.id + " due to collision");
+			return direction;
+		}
+
+
 		double toXborder = Math.min(vector.getX(), Math.abs(vector.getX() - Game.WIDTH));
 		if (toXborder < 1000) {
 			System.err.println("Reset X for drone " + drone.getId());
@@ -194,19 +213,15 @@ public class DownAndUp {
 			System.err.println("GoingUP for drone " + drone.getId());
 			direction = UP;
 		}
-
 		return direction;
 	}
 
-	private RadarDirection checkForType(int i, FishType fishType, List<Integer> integers, RadarDirection radarDirection) {
-		Optional<Fish> any = integers.stream()
+	private RadarDirection checkForType(int i, List<Integer> integers, RadarDirection radarDirection) {
+		Optional<Integer> any = integers.stream()
 			.filter(integer -> !allocations.get(Math.abs(i - 1)).contains(integer))
-			.map(integer -> game.fishesMap.get(integer))
-			.filter(Objects::nonNull)
-			.filter(fish -> fish.type == fishType)
 			.findAny();
 		if (any.isPresent()) {
-			allocations.get(i).add(any.get().getId());
+			allocations.get(i).add(any.get());
 			return radarDirection;
 		}
 		return null;

@@ -35,6 +35,8 @@ public class DownAndUp {
 
 
 	private void checkCollision(Drone drone, Vector vector) {
+
+		// bug : seed=-175664990971267260
 		for (int i = 0; i < 5; i++) {
 			if (moveAndCheckNoCollision(drone, vector, i))
 				return;
@@ -51,6 +53,16 @@ public class DownAndUp {
 		}
 
 		for (int i = -5; i > -10; i--) {
+			if (moveAndCheckNoCollision(drone, vector, i))
+				return;
+		}
+
+		for (int i = 10; i < 15; i++) {
+			if (moveAndCheckNoCollision(drone, vector, i))
+				return;
+		}
+
+		for (int i = -10; i > -15; i--) {
 			if (moveAndCheckNoCollision(drone, vector, i))
 				return;
 		}

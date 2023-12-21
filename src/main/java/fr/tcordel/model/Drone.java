@@ -111,4 +111,6 @@ public class Drone implements Entity {
     public int getId() {
         return id;
     }
+
+
 }

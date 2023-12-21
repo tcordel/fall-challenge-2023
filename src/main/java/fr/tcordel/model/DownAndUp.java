@@ -4,12 +4,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 public class DownAndUp {
 
 	Vector UP = new Vector(0, -1000);
 	Vector DOWN = new Vector(0, 1000);
 
 	private final Game game;
+	private final GameEstimator gameEstimator = new GameEstimator();
 	public int leftIndex = 0;
 	private double twentyDegToRadians = Math.toRadians(20);
 
@@ -21,23 +24,63 @@ public class DownAndUp {
 		DOWN, UP;
 	}
 
+
 	Strat left = Strat.DOWN;
 	Strat right = Strat.DOWN;
 
 	boolean[] batterieToogle = new boolean[2];
+	boolean[] commit = new boolean[2];
+	boolean commitCalled = false;
+	boolean hasCommitted = false;
 	List<Set<Integer>> allocations = List.of(new HashSet<>(), new HashSet<>());
 	public void process(Radar[] radars, Set<Integer> scans) {
+		if (!commitCalled) {
+			checkWinningState();
+		}
 		preAllocate(radars);
 		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
 			Drone drone = game.gamePlayers.get(0).drones.get(i);
-			Vector vector = getVector(radars, scans, i, drone);
+			commit[i] = commit[i] && drone.getY() > Game.DRONE_START_Y;
+			Vector vector = commit[i] ? UP : getVector(radars, scans, i, drone);
 			boolean escaping = checkCollision(drone, vector);
 			System.out.printf(
-				"MOVE %d %d %d %n", (int)drone.move.getX(),
+				"MOVE %d %d %d %s%s%n", (int)drone.move.getX(),
 				(int)drone.move.getY(),
-				switchOn(i, drone, escaping)
+				switchOn(i, drone, escaping),
+				(commit[i] ? "🏆" : "🤑"),
+				escaping ? "🥵" : "🤗"
 								);
 		}
+	}
+
+	private void checkWinningState() {
+		if (game.gamePlayers.get(0).getScore() > 0 ||
+			game.gamePlayers.get(1).getScore() > 0 ) {
+			return;
+		}
+
+		gameEstimator.reset();
+
+		Set<Scan> scans = game.gamePlayers.get(0).drones.stream().flatMap(drone -> drone.scans.stream())
+			.collect(Collectors.toSet());
+		gameEstimator.computeScanScore(scans, game.gamePlayers.get(0).getIndex());
+		int oppMaxScore = gameEstimator.computeEndGameScore(game.gamePlayers.get(1).getIndex());
+		int myScoreCommittingFirst = gameEstimator.computeEndGameScore(game.gamePlayers.get(0).getIndex());
+		System.err.println("EndGame estimation me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
+
+		if (myScoreCommittingFirst > oppMaxScore) {
+			commitCalled = true;
+			commit[0] = true;
+			commit[1] = true;
+		}
+		// Si je commit avant l'autre :
+		// point bonus  moi
+		// estimer la perte potentiel de point bonus (premier + combo) pour l'advesaire.
+
+		// --> le reste ne permet pas de rattraper les données commit + bonus + le reste à récupérer.
+
+		// mon score commit premier + reste potentiel second > reste potentiel premier pour l'autre.
+
 	}
 
 	private int switchOn(int i, Drone drone, boolean escaping) {
@@ -52,9 +95,19 @@ public class DownAndUp {
 	}
 
 	private void preAllocate(Radar[] radars) {
+		if (!Player.FIRST_ROUND && !hasCommitted) {
+			for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
+				hasCommitted = game.gamePlayers.get(0).drones.stream().anyMatch(drone -> drone.getY() <= Game.DRONE_START_Y);
+			}
+		}
+		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
+			allocations.get(i).clear();
+		}
+		if (hasCommitted) {
+			return;
+		}
 		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
 			boolean isLeft = leftIndex == i;
-			allocations.get(i).clear();
 			allocations.get(i).addAll(isLeft ? radars[i].bottomLeft : radars[i].bottomRight);
 			allocations.get(i).addAll(isLeft ? radars[i].topLeft : radars[i].topRight);
 		}

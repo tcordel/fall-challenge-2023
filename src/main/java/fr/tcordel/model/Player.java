@@ -45,7 +45,11 @@ public class Player {
 				new Vector(7500, 0)
 			)};
 		int[] targetIndex = new int[] {0, 0};
-		game.gamePlayers = List.of(new GamePlayer(), new GamePlayer());
+		GamePlayer me = new GamePlayer();
+		me.setIIndex(0);
+		GamePlayer foe = new GamePlayer();
+		foe.setIIndex(1);
+		game.gamePlayers = List.of(me, foe);
 		// game loop
 		while (true) {
 			int myScore = in.nextInt();

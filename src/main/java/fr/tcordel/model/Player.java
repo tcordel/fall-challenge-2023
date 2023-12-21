@@ -16,6 +16,7 @@ public class Player {
 		Set<Integer> scans = new HashSet<>();
 		game.visibleFishes = new ArrayList<>();
 		game.visibleUglies = new ArrayList<>();
+		Set<Integer> myDonesId = new HashSet<>();
 
 
 		Map<Integer, Integer> droneIdToIndex = new HashMap<>();
@@ -92,6 +93,7 @@ public class Player {
 						List<Vector> tmp = targets[0];
 						targets[0] = targets[1];
 						targets[1] = tmp;
+						myDonesId.add(droneId);
 					}
 					Drone drone = new Drone(droneX, droneY, droneId, game.gamePlayers.get(0));
 					game.gamePlayers.get(0).drones.add(drone);
@@ -127,7 +129,9 @@ public class Player {
 //				System.err.println("Scanned " + droneId + "-" + creatureId);
 				Scan e = new Scan(game.fishesMap.get(creatureId));
 				game.dronesMap.get(droneId).scans.add(e);
-				scans.add(creatureId);
+				if (myDonesId.contains(droneId)) {
+					scans.add(creatureId);
+				}
 			}
 			int visibleCreatureCount = in.nextInt();
 			game.fishes.forEach(fish -> fish.speed = null);
@@ -159,7 +163,9 @@ public class Player {
 				int creatureId = in.nextInt();
 				String radar = in.next();
 //				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
-				radars[droneIdToIndex.get(droneId)].populate(creatureId, RadarDirection.valueOf(radar));
+				if (!scans.contains(creatureId)) {
+					radars[droneIdToIndex.get(droneId)].populate(creatureId, RadarDirection.valueOf(radar));
+				}
 			}
 
 

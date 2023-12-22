@@ -14,7 +14,7 @@ public class DownAndUp {
 	private final Game game;
 	private final GameEstimator gameEstimator = new GameEstimator();
 	public int leftIndex = 0;
-	private double twentyDegToRadians = Math.toRadians(20);
+	private double tenDegToRadians = Math.toRadians(10);
 
 	public DownAndUp(Game game) {
 		this.game = game;
@@ -116,42 +116,17 @@ public class DownAndUp {
 
 	private boolean checkCollision(Drone drone, Vector vector) {
 
-		// bug : seed=-175664990971267260
-		for (int i = 0; i < 5; i++) {
-			if (moveAndCheckNoCollision(drone, vector, i))
+		for (int i = 0; i < 60; i++) {
+			int offset = (i % 2 > 0 ? 1 : -1) * i;
+			if (moveAndCheckNoCollision(drone, vector, offset))
 				return i > 0;
-		}
-
-		for (int i = -1; i > -5; i--) {
-			if (moveAndCheckNoCollision(drone, vector, i))
-				return true;
-		}
-
-		for (int i = 5; i < 10; i++) {
-			if (moveAndCheckNoCollision(drone, vector, i))
-				return true;
-		}
-
-		for (int i = -5; i > -10; i--) {
-			if (moveAndCheckNoCollision(drone, vector, i))
-				return true;
-		}
-
-		for (int i = 10; i < 15; i++) {
-			if (moveAndCheckNoCollision(drone, vector, i))
-				return true;
-		}
-
-		for (int i = -10; i > -15; i--) {
-			if (moveAndCheckNoCollision(drone, vector, i))
-				return true;
 		}
 		drone.move = drone.pos.add(vector);
 		return true;
 	}
 
 	private boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i) {
-		drone.move = drone.pos.add(vector.rotate(i * twentyDegToRadians));
+		drone.move = drone.pos.add(vector.rotate(i * tenDegToRadians));
 		game.updateDrone(drone);
 		if (game.visibleUglies
 			.stream()

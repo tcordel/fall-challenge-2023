@@ -25,4 +25,18 @@ public enum FishType {
     public int getDeeperLimit() {
         return deeperLimit;
     }
+
+	public static FishType forY(double y, int threshold) {
+		if ((y - threshold) >= FishType.JELLY.getUpperLimit() && (y + threshold) <= FishType.JELLY.getDeeperLimit()) {
+			return FishType.JELLY;
+		}
+		if ((y - threshold) >= FishType.FISH.getUpperLimit() && (y + threshold) <= FishType.FISH.getDeeperLimit()) {
+			return FishType.FISH;
+		}
+		if ((y - threshold) >= FishType.CRAB.getUpperLimit() && (y + threshold) <= FishType.CRAB.getDeeperLimit()) {
+			return FishType.CRAB;
+		}
+
+		return null;
+	}
 }

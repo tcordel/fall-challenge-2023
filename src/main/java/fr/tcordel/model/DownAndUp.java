@@ -1,5 +1,6 @@
 package fr.tcordel.model;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ public class DownAndUp {
 
 	private final Game game;
 	private final GameEstimator gameEstimator = new GameEstimator();
+	private final GameEstimator gameEstimator2 = new GameEstimator();
 	public int leftIndex = 0;
 	private double tenDegToRadians = Math.toRadians(10);
 
@@ -38,6 +40,7 @@ public class DownAndUp {
 			checkWinningState();
 		}
 		preAllocate(radars);
+		Arrays.fill(targets, null);
 		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
 			Drone drone = game.gamePlayers.get(0).drones.get(i);
 			commit[i] = commit[i] && drone.getY() > Game.DRONE_START_Y;
@@ -46,7 +49,7 @@ public class DownAndUp {
 			System.out.printf(
 				"MOVE %d %d %d %s%s%n", (int)drone.move.getX(),
 				(int)drone.move.getY(),
-				switchOn(i, drone, escaping),
+				switchOn(i, drone, radars[i], targets[i], escaping),
 				(commit[i] ? "🏆" : "🤑"),
 				escaping ? "🥵" : "🤗"
 								);
@@ -60,12 +63,17 @@ public class DownAndUp {
 		}
 
 		gameEstimator.reset();
+		gameEstimator2.reset();
 
 		Set<Scan> scans = game.gamePlayers.get(0).drones.stream().flatMap(drone -> drone.scans.stream())
 			.collect(Collectors.toSet());
-		gameEstimator.computeScanScore(scans, game.gamePlayers.get(0).getIndex());
+		Set<Scan> scansFoe = game.gamePlayers.get(1).drones.stream().flatMap(drone -> drone.scans.stream())
+			.collect(Collectors.toSet());
+		int myCommitPoint = gameEstimator.computeScanScore(scans, game.gamePlayers.get(0).getIndex());
+		int himCommintPoint = gameEstimator2.computeScanScore(scansFoe, game.gamePlayers.get(1).getIndex());
 		int oppMaxScore = gameEstimator.computeEndGameScore(game.gamePlayers.get(1).getIndex());
 		int myScoreCommittingFirst = gameEstimator.computeEndGameScore(game.gamePlayers.get(0).getIndex());
+		System.err.println("Committing me:%d, him %d".formatted(myCommitPoint, himCommintPoint));
 		System.err.println("EndGame estimation me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 
 		if (myScoreCommittingFirst > oppMaxScore) {
@@ -83,15 +91,25 @@ public class DownAndUp {
 
 	}
 
-	private int switchOn(int i, Drone drone, boolean escaping) {
+	private int switchOn(int i, Drone drone, Radar radar, FishType target, boolean escaping) {
 		boolean lightOn = false;
 		if (!escaping
 			&& !batterieToogle[i]
-			&& drone.getY() >= 3000) {
+			&& isInRange(drone, radar.getTypes(game.fishesMap))) {
 			lightOn = true;
 		}
 		batterieToogle[i] = lightOn;
 		return lightOn ? 1 : 0;
+	}
+
+	private boolean isInRange(Drone drone, Set<FishType> target) {
+		game.updateDrone(drone);
+		FishType zoneType = FishType.forY(drone.getY(), game.getMoveSpeed(drone) / 3);
+		if (zoneType == null) {
+			return false;
+		}
+		return target.stream().anyMatch(fishType -> fishType.equals(zoneType));
+//		return drone.getY() >= 3000;
 	}
 
 	private void preAllocate(Radar[] radars) {
@@ -138,16 +156,17 @@ public class DownAndUp {
 		return false;
 	}
 
+	FishType[] targets = new FishType[2];
 	private Vector getVector(Radar[] radars, Set<Integer> scans, int i, Drone drone) {
 		Radar radarForDrone = radars[i];
 		boolean isLeft = leftIndex == i;
 
 		RadarDirection rd = null;
-		FishType targetting = null;
 		Radar radarForType;
+		FishType target = null;
 		for (FishType fishType : FishType.FISH_ORDERED) {
 			radarForType = radarForDrone.forType(game.fishesMap, fishType);
-			targetting = fishType;
+			target = fishType;
 			RadarDirection radarDirection = isLeft ? RadarDirection.BL : RadarDirection.BR;
 			rd = checkForType(i, isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
 			if (rd != null) {
@@ -184,9 +203,10 @@ public class DownAndUp {
 			return UP;
 		}
 
+		targets[i] = target;
 		int threshold = game.getMoveSpeed(drone) / 2;
-		if ((drone.getY() - threshold) >= targetting.getDeeperLimit() || (drone.getY() + threshold) <= targetting.getUpperLimit()) {
-			System.err.println(drone.getId() + " depth too far from target type " + targetting);
+		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
+			System.err.println(drone.getId() + " depth too far from target type " + target);
 			return switch (rd) {
 				case BL -> DOWN;
 				case BR -> DOWN;

@@ -51,4 +51,8 @@ public class Fish implements Entity {
     public int getId() {
         return id;
     }
+
+    public FishType getType() {
+        return type;
+    }
 }

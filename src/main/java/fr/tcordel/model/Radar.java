@@ -1,8 +1,13 @@
 package fr.tcordel.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Radar {
 
@@ -44,5 +49,14 @@ public class Radar {
 			bottomRight.stream().filter(i -> fishes.containsKey(i) && fishes.get(i).type == type).toList(),
 			bottomLeft.stream().filter(i -> fishes.containsKey(i) && fishes.get(i).type == type).toList()
 		);
+	}
+
+	public Set<FishType> getTypes(Map<Integer, Fish> fishes) {
+		return Stream.of(topLeft, topRight, bottomLeft, bottomRight)
+			.flatMap(Collection::stream)
+			.map(fishes::get)
+			.filter(Objects::nonNull)
+			.map(Fish::getType)
+			.collect(Collectors.toSet());
 	}
 }

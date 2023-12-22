@@ -10,6 +10,8 @@ import java.util.stream.IntStream;
 
 public class GameEstimator {
 
+	public static int MAX_POINT = 96;
+
 	public final Set<Scan> allScans;
 	Map<Scan, Integer> firstToScan = new HashMap<>();
 	Map<Integer, Integer> firstToScanAllFishOfColor = new HashMap<>();

@@ -93,10 +93,12 @@ public class DownAndUp {
 
 	private int switchOn(int i, Drone drone, Radar radar, FishType target, boolean escaping) {
 		boolean lightOn = false;
+		game.updateDrone(drone);
 		if (!escaping
 			&& !batterieToogle[i]
-			&& drone.getY() >= 3000) {
-//			&& isInRange(drone, radar.getTypes(game.fishesMap))) {
+			&& drone.getY() >= FishType.JELLY.getUpperLimit()
+//			&& isInRange(drone, radar.getTypes(game.fishesMap))
+		) {
 			lightOn = true;
 		}
 		batterieToogle[i] = lightOn;
@@ -104,7 +106,6 @@ public class DownAndUp {
 	}
 
 	private boolean isInRange(Drone drone, Set<FishType> target) {
-		game.updateDrone(drone);
 		FishType zoneType = FishType.forY(drone.getY(), game.getMoveSpeed(drone) / 3);
 		if (zoneType == null) {
 			return false;

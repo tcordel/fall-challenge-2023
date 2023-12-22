@@ -73,8 +73,11 @@ public class DownAndUp {
 		int himCommintPoint = gameEstimator2.computeScanScore(scansFoe, game.gamePlayers.get(1).getIndex());
 		int oppMaxScore = gameEstimator.computeEndGameScore(game.gamePlayers.get(1).getIndex());
 		int myScoreCommittingFirst = gameEstimator.computeEndGameScore(game.gamePlayers.get(0).getIndex());
+		int myScoreCommittingFirst2 = gameEstimator2.computeEndGameScore(game.gamePlayers.get(0).getIndex());
+		int oppMaxScore2 = gameEstimator2.computeEndGameScore(game.gamePlayers.get(1).getIndex());
 		System.err.println("Committing me:%d, him %d".formatted(myCommitPoint, himCommintPoint));
-		System.err.println("EndGame estimation me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
+		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
+		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
 
 		if (myScoreCommittingFirst > oppMaxScore) {
 			commitCalled = true;

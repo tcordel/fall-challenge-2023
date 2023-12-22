@@ -17,6 +17,10 @@ public class DownAndUp {
 	private final GameEstimator gameEstimator2 = new GameEstimator();
 	public int leftIndex = 0;
 	private double tenDegToRadians = Math.toRadians(10);
+	private double _15DegToRadians = Math.toRadians(15);
+
+	Vector DOWN_LEFT = DOWN.rotate(_15DegToRadians);
+	Vector DOWN_RIGHT = DOWN.rotate(-_15DegToRadians);
 
 	public DownAndUp(Game game) {
 		this.game = game;
@@ -213,8 +217,8 @@ public class DownAndUp {
 		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
 			System.err.println(drone.getId() + " depth too far from target type " + target);
 			return switch (rd) {
-				case BL -> DOWN;
-				case BR -> DOWN;
+				case BL -> drone.getX() > 2000 ? DOWN_LEFT : DOWN;
+				case BR -> drone.getX() < (Game.WIDTH - 2000) ? DOWN_RIGHT : DOWN;
 				case TL -> UP;
 				case TR -> UP;
 			};
@@ -258,7 +262,7 @@ public class DownAndUp {
 
 		vector = drone.pos.add(direction);
 		double toYborder =  Game.HEIGHT - vector.getY();
-		if (toYborder < 1000) {
+		if (toYborder < 500) {
 			System.err.println("Reset Y for drone " + drone.getId());
 			direction =  new Vector(direction.getX(), 0);
 		}

@@ -95,7 +95,8 @@ public class DownAndUp {
 		boolean lightOn = false;
 		if (!escaping
 			&& !batterieToogle[i]
-			&& isInRange(drone, radar.getTypes(game.fishesMap))) {
+			&& drone.getY() >= 3000) {
+//			&& isInRange(drone, radar.getTypes(game.fishesMap))) {
 			lightOn = true;
 		}
 		batterieToogle[i] = lightOn;

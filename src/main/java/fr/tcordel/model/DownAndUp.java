@@ -1,8 +1,10 @@
 package fr.tcordel.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,6 +13,8 @@ public class DownAndUp {
 
 	Vector UP = new Vector(0, -1000);
 	Vector DOWN = new Vector(0, 1000);
+
+	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = false;
 
 	private final Game game;
 	private final GameEstimator gameEstimator = new GameEstimator();
@@ -74,11 +78,12 @@ public class DownAndUp {
 		Set<Scan> scansFoe = game.gamePlayers.get(1).drones.stream().flatMap(drone -> drone.scans.stream())
 			.collect(Collectors.toSet());
 		int myCommitPoint = gameEstimator.computeScanScore(scans, game.gamePlayers.get(0).getIndex());
+		int oppMaxScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(1).getIndex());
+		int myScoreCommittingFirst = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(0).getIndex());
+
 		int himCommintPoint = gameEstimator2.computeScanScore(scansFoe, game.gamePlayers.get(1).getIndex());
-		int oppMaxScore = gameEstimator.computeEndGameScore(game.gamePlayers.get(1).getIndex());
-		int myScoreCommittingFirst = gameEstimator.computeEndGameScore(game.gamePlayers.get(0).getIndex());
-		int myScoreCommittingFirst2 = gameEstimator2.computeEndGameScore(game.gamePlayers.get(0).getIndex());
-		int oppMaxScore2 = gameEstimator2.computeEndGameScore(game.gamePlayers.get(1).getIndex());
+		int myScoreCommittingFirst2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(0).getIndex());
+		int oppMaxScore2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(1).getIndex());
 		System.err.println("Committing me:%d, him %d".formatted(myCommitPoint, himCommintPoint));
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
@@ -88,6 +93,43 @@ public class DownAndUp {
 			commit[0] = true;
 			commit[1] = true;
 		}
+		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && oppMaxScore2 > myScoreCommittingFirst2) {
+			System.err.println("OPP can win :(");
+			Map<Integer, List<Drone>> list = game.gamePlayers
+				.stream()
+				.flatMap(g -> g.drones.stream())
+				.collect(Collectors.toMap(a -> (int)(a.getY() / Game.DRONE_MOVE_SPEED), drone -> {
+					List<Drone> arrayList = new ArrayList<>();
+					arrayList.add(drone);
+					return arrayList;
+				}, (a, b) -> {
+					a.addAll(b);
+					return a;
+				}));
+
+			gameEstimator.reset();
+			list.keySet().stream().sorted().forEach(key -> {
+				List<Drone> drones = list.get(key);
+				Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
+					.flatMap(drone -> drone.scans.stream())
+					.collect(Collectors.toSet());
+				Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1)
+					.flatMap(drone -> drone.scans.stream())
+					.collect(Collectors.toSet());
+				gameEstimator.commit(myScans, oppScans);
+			});
+			int myScore = gameEstimator.computeFullEndGameScore(GamePlayer.ME);
+			int foeScore = gameEstimator.computeFullEndGameScore(GamePlayer.FOE);
+			if (myScore >= foeScore) {
+				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
+				commitCalled = true;
+				commit[0] = true;
+				commit[1] = true;
+			} else {
+				System.err.println("OPP will win :( %d vs %d".formatted(myScore, foeScore));
+			}
+		}
+
 		// Si je commit avant l'autre :
 		// point bonus  moi
 		// estimer la perte potentiel de point bonus (premier + combo) pour l'advesaire.
@@ -159,8 +201,8 @@ public class DownAndUp {
 			.stream()
 			.allMatch(u -> game.getCollision(drone, u) == Collision.NONE)) {
 			return true;
-			//		} else {
-			//			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i );
+		} else {
+			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i);
 		}
 		return false;
 	}

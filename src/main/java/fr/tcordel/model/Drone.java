@@ -112,5 +112,7 @@ public class Drone implements Entity {
         return id;
     }
 
-
+    public GamePlayer getOwner() {
+        return owner;
+    }
 }

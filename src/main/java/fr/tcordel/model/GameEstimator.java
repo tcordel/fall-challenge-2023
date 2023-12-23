@@ -2,6 +2,7 @@ package fr.tcordel.model;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -13,6 +14,9 @@ public class GameEstimator {
 	public static int MAX_POINT = 96;
 
 	public final Set<Scan> allScans;
+
+	Set<Scan> allOfMyScans = new HashSet<>();
+	Set<Scan> allOfFoeScans = new HashSet<>();
 	Map<Scan, Integer> firstToScan = new HashMap<>();
 	Map<Integer, Integer> firstToScanAllFishOfColor = new HashMap<>();
 	Map<FishType, Integer> firstToScanAllFishOfType = new HashMap<>();
@@ -58,9 +62,45 @@ public class GameEstimator {
 		return total;
 	}
 
-	public int computeEndGameScore(int playerIndex) {
-		int total = 0;
+	public void commit(Set<Scan> myScans, Set<Scan> foeScans) {
+		allOfMyScans.addAll(myScans);
+		allOfFoeScans.addAll(foeScans);
 		for (Scan scan : allScans) {
+			if (firstToScan.containsKey(scan)) {
+				continue;
+			}
+			if (myScans.contains(scan) && !foeScans.contains(scan)) {
+				firstToScan.put(scan, GamePlayer.ME);
+			} else if (foeScans.contains(scan) && !myScans.contains(scan)) {
+				firstToScan.put(scan, GamePlayer.FOE);
+			}
+		}
+
+		for (FishType type : FishType.values()) {
+			if (firstToScanAllFishOfType.containsKey(type)) {
+				continue;
+			}
+			boolean iCompleted = playerScannedAllFishOfType(myScans, type);
+			boolean foeCompleted = playerScannedAllFishOfType(foeScans, type);
+			if (iCompleted && !foeCompleted) {
+				firstToScanAllFishOfType.put(type, GamePlayer.ME);
+			} else if (foeCompleted && !iCompleted) {
+				firstToScanAllFishOfType.put(type, GamePlayer.FOE);
+			}
+		}
+	}
+
+	public int getScore(int playerIndex) {
+		return switch (playerIndex) {
+			case GamePlayer.ME -> computeGameScore(GamePlayer.ME, allOfMyScans);
+			case GamePlayer.FOE -> computeGameScore(GamePlayer.FOE, allOfFoeScans);
+			default -> throw new IllegalArgumentException("Unexpecrted player id %d".formatted(playerIndex));
+		};
+	}
+
+	private int computeGameScore(int playerIndex, Set<Scan> allScans1) {
+		int total = 0;
+		for (Scan scan : allScans1) {
 			total += scan.type.ordinal() + 1;
 			if (firstToScan.get(scan) == null || firstToScan.get(scan).equals(playerIndex)) {
 				firstToScan.put(scan, playerIndex);
@@ -88,6 +128,10 @@ public class GameEstimator {
 		return total;
 	}
 
+	public int computeFullEndGameScore(int playerIndex) {
+		return computeGameScore(playerIndex, allScans);
+	}
+
 	private boolean playerScannedAllFishOfType(Set<Scan> scans, FishType type) {
 		for (int color = 0; color < Game.COLORS_PER_FISH; ++color) {
 			if (!scans.contains(new Scan(type, color))) {
@@ -111,5 +155,7 @@ public class GameEstimator {
 		firstToScan.clear();
 		firstToScanAllFishOfColor.clear();
 		firstToScanAllFishOfType.clear();
+		allOfMyScans.clear();
+		allOfFoeScans.clear();
 	}
 }

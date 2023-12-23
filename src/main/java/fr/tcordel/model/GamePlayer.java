@@ -9,6 +9,10 @@ import fr.tcordel.bridge.AbstractMultiplayerPlayer;
 
 public class GamePlayer extends AbstractMultiplayerPlayer {
 
+	public static final int ME = 0;
+	public static final int FOE = 1;
+
+
 	String message;
 	List<Drone> drones;
 	Set<Scan> scans;

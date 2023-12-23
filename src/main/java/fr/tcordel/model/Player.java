@@ -46,9 +46,9 @@ public class Player {
 			)};
 		int[] targetIndex = new int[] {0, 0};
 		GamePlayer me = new GamePlayer();
-		me.setIIndex(0);
+		me.setIIndex(GamePlayer.ME);
 		GamePlayer foe = new GamePlayer();
-		foe.setIIndex(1);
+		foe.setIIndex(GamePlayer.FOE);
 		game.gamePlayers = List.of(me, foe);
 		// game loop
 		while (true) {

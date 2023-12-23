@@ -1,7 +1,9 @@
 package fr.tcordel.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Drone implements Entity {
 
@@ -22,6 +24,10 @@ public class Drone implements Entity {
     double dieAt;
     String message;
     GamePlayer owner;
+
+    public Fish target;
+
+    Map<Integer, RadarDirection> radar = new HashMap<>();
     
     /* stats */
     int maxTurnsSpentWithScan;
@@ -106,6 +112,10 @@ public class Drone implements Entity {
 
     }
 
+    public void resetRadars() {
+        radar.clear();
+    }
+
 
     @Override
     public int getId() {
@@ -114,5 +124,9 @@ public class Drone implements Entity {
 
     public GamePlayer getOwner() {
         return owner;
+    }
+
+    public Map<Integer, RadarDirection> getRadar() {
+        return radar;
     }
 }

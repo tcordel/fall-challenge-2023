@@ -84,6 +84,7 @@ public class Player {
 			for (Radar radar : radars) {
 				radar.reset();
 			}
+			game.dronesMap.values().forEach(Drone::resetRadars);
 			for (int i = 0; i < myDroneCount; i++) {
 				int droneId = in.nextInt();
 				int droneX = in.nextInt();
@@ -167,9 +168,11 @@ public class Player {
 				int creatureId = in.nextInt();
 				String radar = in.next();
 //				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
+				RadarDirection radarDirection = RadarDirection.valueOf(radar);
 				if (!scans.contains(creatureId)) {
-					radars[droneIdToIndex.get(droneId)].populate(creatureId, RadarDirection.valueOf(radar));
+					radars[droneIdToIndex.get(droneId)].populate(creatureId, radarDirection);
 				}
+				game.dronesMap.get(droneId).getRadar().put(creatureId, radarDirection);
 			}
 
 			downAndUp.process(radars, scans);

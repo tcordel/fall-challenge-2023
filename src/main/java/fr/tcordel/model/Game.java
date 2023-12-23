@@ -398,6 +398,7 @@ public class Game {
 
     int updateFish_iFish = 0;
     ArrayList<Fish> updateFish_closests = new ArrayList<>();
+
     void updateFish() {
 
         for (iFish = 0; iFish < fishes.size(); iFish++) {
@@ -565,7 +566,7 @@ public class Game {
 
     public void performGameUpdate(int frameIdx) {
         //        clearPlayerInfo();
-        doBatteries();
+//        doBatteries();
 
         // Update speeds
         updateDrones();

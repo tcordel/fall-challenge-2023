@@ -2,6 +2,7 @@ package fr.tcordel.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +12,12 @@ import java.util.stream.Collectors;
 
 public class DownAndUp {
 
+	private final AttackFish attackFish;
 	Vector UP = new Vector(0, -1000);
 	Vector DOWN = new Vector(0, 1000);
 
 	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = false;
+	private static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = false;
 
 	private final Game game;
 	private final GameEstimator gameEstimator = new GameEstimator();
@@ -28,10 +31,11 @@ public class DownAndUp {
 
 	public DownAndUp(Game game) {
 		this.game = game;
+		attackFish = new AttackFish(game);
 	}
 
 	enum Strat {
-		DOWN, UP;
+		DOWN, UP, ATTACK
 	}
 
 
@@ -48,6 +52,7 @@ public class DownAndUp {
 			checkWinningState();
 		}
 		preAllocate(radars);
+		resetCaches();
 		Arrays.fill(targets, null);
 		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
 			Drone drone = game.gamePlayers.get(0).drones.get(i);
@@ -64,9 +69,26 @@ public class DownAndUp {
 		}
 	}
 
+	private void resetCaches() {
+		for (Drone drone : game.gamePlayers.get(GamePlayer.ME)
+			.drones) {
+			if (drone.target != null && (
+				!drone.getRadar().containsKey(drone.target.id)
+				|| game.gamePlayers.get(GamePlayer.FOE).scans.contains(new Scan(drone.target))
+				|| game.gamePlayers.get(GamePlayer.FOE).drones.stream().anyMatch(d -> d.scans.contains(new Scan(drone.target)))
+			)) {
+				drone.target = null;
+			}
+		}
+	}
+
 	private void checkWinningState() {
 		if (game.gamePlayers.get(0).getScore() > 0 ||
 			game.gamePlayers.get(1).getScore() > 0 ) {
+			return;
+		}
+
+		if (left == Strat.ATTACK || right == Strat.ATTACK) {
 			return;
 		}
 
@@ -92,6 +114,11 @@ public class DownAndUp {
 			commitCalled = true;
 			commit[0] = true;
 			commit[1] = true;
+		}
+		if (ATTACK_RESSOURCE_ON_NO_ALLOCATION && oppMaxScore2 > myScoreCommittingFirst2) {
+			System.err.println("Loosing, so attacking whatever i can");
+			left = Strat.ATTACK;
+			right = Strat.ATTACK;
 		}
 		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && oppMaxScore2 > myScoreCommittingFirst2) {
 			System.err.println("OPP can win :(");
@@ -187,19 +214,24 @@ public class DownAndUp {
 
 		for (int i = 0; i < 60; i++) {
 			int offset = (i % 2 > 0 ? 1 : -1) * i;
-			if (moveAndCheckNoCollision(drone, vector, offset))
+			if (moveAndCheckNoCollision(drone, vector, offset, true))
 				return i > 0;
 		}
 		drone.move = drone.pos.add(vector);
 		return true;
 	}
 
-	private boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i) {
-		drone.move = drone.pos.add(vector.rotate(i * tenDegToRadians));
-		game.updateDrone(drone);
+	private boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone) {
+		if (moveDrone) {
+			drone.move = drone.pos.add(vector.rotate(i * tenDegToRadians));
+			game.updateDrone(drone);
+		}
 		if (game.visibleUglies
 			.stream()
 			.allMatch(u -> game.getCollision(drone, u) == Collision.NONE)) {
+			//			if (i == 0) {
+			//					vector.normalize().mult(game.getMoveSpeed(drone));
+			//			}
 			return true;
 		} else {
 			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i);
@@ -211,6 +243,15 @@ public class DownAndUp {
 	private Vector getVector(Radar[] radars, Set<Integer> scans, int i, Drone drone) {
 		Radar radarForDrone = radars[i];
 		boolean isLeft = leftIndex == i;
+
+		Vector direction = null;
+
+		if ((isLeft ? left : right) == Strat.ATTACK) {
+			direction = applyAttackStrat(drone, direction, isLeft);
+		}
+		if (direction != null) {
+			return direction;
+		}
 
 		RadarDirection rd = null;
 		Radar radarForType;
@@ -244,13 +285,13 @@ public class DownAndUp {
 			}
 		}
 
-//		Strat newStrat = checkStrat(drone, isLeft ? left : right);
-//		if (isLeft) {
-//			left = newStrat;
-//		} else {
-//			right = newStrat;
-//		}
 		if (rd == null) {
+			if (ATTACK_RESSOURCE_ON_NO_ALLOCATION) {
+				direction = applyAttackStrat(drone, direction, isLeft);
+				if (direction != null) {
+					return direction;
+				}
+			}
 			return UP;
 		}
 
@@ -276,15 +317,42 @@ public class DownAndUp {
 		//			}
 		//		}
 		//		RadarDirection rd = goToCenter ? RadarDirection.BR : RadarDirection.BL;
-		Vector direction = getFilteredVector(drone, rd);
+		direction = getFilteredVector(drone, rd.getDirection(), 1000, 500);
 
 		return direction;
 	}
 
-	private Vector getFilteredVector(Drone drone, RadarDirection rd) {
-		Vector direction = rd.getDirection();
+	private Vector applyAttackStrat(Drone drone, Vector direction, boolean isLeft) {
+		if (drone.target == null) {
+			drone.target = game.fishes.stream()
+				.filter(f -> drone.getRadar().containsKey(f.id))
+				.filter(f -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(d -> d.target == f))
+				.filter(f -> !game.gamePlayers.get(GamePlayer.FOE).scans.contains(new Scan(f)))
+				.filter(f -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(d -> d.scans.contains(new Scan(f))))
+				.sorted(Comparator.comparing(f -> -f.getType().ordinal()))
+				.findFirst().orElse(null);
+		}
+		if (drone.target != null) {
+			direction = attackFish.process(drone.target, drone);
+		} else if (isLeft) {
+			left = Strat.UP;
+		} else {
+			right = Strat.UP;
+		}
+		if (direction != null
+			&& moveAndCheckNoCollision(drone, direction, 0, false)) {
+			direction = direction.normalize().mult(game.getMoveSpeed(drone));
+		}
+		return direction;
+	}
+
+	private Vector getFilteredVector(Drone drone, Vector direction, int xLimit, int yLimit) {
+		if (direction == null) {
+			return direction;
+		}
 		Vector vector = drone.pos.add(direction);
 		drone.move = vector;
+		game.updateDrone(drone);
 		boolean processFilter = game.visibleUglies.isEmpty() ||
 								game.visibleUglies
 									.stream()
@@ -295,16 +363,20 @@ public class DownAndUp {
 			return direction;
 		}
 
+		direction = filterDirection(drone, vector, direction, xLimit, yLimit);
+		return direction;
+	}
 
+	private Vector filterDirection(Drone drone, Vector vector, Vector direction, int xLimit, int yLimit) {
 		double toXborder = Math.min(vector.getX(), Math.abs(vector.getX() - Game.WIDTH));
-		if (toXborder < 1000) {
+		if (toXborder < xLimit) {
 			System.err.println("Reset X for drone " + drone.getId());
 			direction =  new Vector(0, direction.getY());
 		}
 
 		vector = drone.pos.add(direction);
-		double toYborder =  Game.HEIGHT - vector.getY();
-		if (toYborder < 500) {
+		double toYborder = Game.HEIGHT - vector.getY();
+		if (toYborder < yLimit) {
 			System.err.println("Reset Y for drone " + drone.getId());
 			direction =  new Vector(direction.getX(), 0);
 		}
@@ -324,12 +396,5 @@ public class DownAndUp {
 			return radarDirection;
 		}
 		return null;
-	}
-
-	private Strat checkStrat(Drone drone, Strat strat) {
-		return switch (strat) {
-			case UP -> drone.getY() < 500 ? Strat.DOWN : Strat.UP;
-			case DOWN -> drone.getY() > 7400 ? Strat.UP : Strat.DOWN;
-		};
 	}
 }

@@ -172,45 +172,6 @@ public class Player {
 				}
 			}
 
-
-//			for (int i = 0; i < myDroneCount; i++) {
-//				Drone drone = game.gamePlayers.get(0).drones.get(i);
-
-//				Radar radar = radars[i];
-//				if (radar == null) {
-//					System.out.println("MOVE %d %d %d UP".formatted(
-//						(int)drone.getX(),
-//						(int)drone.getY() - 800,
-//						0
-//					));
-//					continue;
-//				}
-//
-//				Vector vector = drone.getPos().add(radar.radarDirection().getDirection());
-//				boolean turnOnlight = radar.radarDirection() == RadarDirection.TL || radar.radarDirection() == RadarDirection.TR;
-//				System.out.println("MOVE %d %d %d Aiming %d".formatted(
-//					(int)vector.getX(),
-//					(int) vector.getY(),
-//					turnOnlight ? 1 : 0,
-//					radar.creatureId
-//				));
-
-//				List<Vector> vectors = targets[i];
-//				Vector vector = vectors.get(targetIndex[i]);
-//				if (vector.inRange(drone.pos, 100)) {
-//					System.err.println("Next target for " + i + ", " + targetIndex[i]);
-//					targetIndex[i]++;
-//					if (targetIndex[i] >= vectors.size()) {
-//						targetIndex[i] = 0;
-//					}
-//					vector = vectors.get(targetIndex[i]);
-//				}
-//				System.out.println("MOVE %d %d %d".formatted(
-//					(int)vector.getX(),
-//					(int) vector.getY(),
-//					Math.random() > 0.10d ? 1 : 0
-//				));
-//			}
 			downAndUp.process(radars, scans);
 			FIRST_ROUND = false;
 		}

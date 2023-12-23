@@ -23,8 +23,8 @@ public class DownAndUp {
 	private double tenDegToRadians = Math.toRadians(10);
 	private double _15DegToRadians = Math.toRadians(15);
 
-	Vector DOWN_LEFT = DOWN.rotate(_15DegToRadians);
-	Vector DOWN_RIGHT = DOWN.rotate(-_15DegToRadians);
+	Vector DOWN_LEFT = DOWN.rotate(_15DegToRadians).round();
+	Vector DOWN_RIGHT = DOWN.rotate(-_15DegToRadians).round();
 
 	public DownAndUp(Game game) {
 		this.game = game;

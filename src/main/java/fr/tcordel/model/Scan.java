@@ -33,7 +33,7 @@ public class Scan {
     }
 
     public String toInputString() {
-        return Serializer.join(fishId);
+        return String.valueOf(fishId);
     }
 
     @Override

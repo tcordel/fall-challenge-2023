@@ -17,6 +17,7 @@ public class Player {
 		.flatMap(fishType -> IntStream.range(0, Game.COLORS_PER_FISH).mapToObj(i -> new Scan(fishType, i)))
 		.collect(Collectors.toSet());
 	public static boolean FIRST_ROUND = true;
+	public static int ROUND = 0;
 
 	public static void main(String args[]) {
 		Scanner in = new Scanner(System.in);
@@ -167,6 +168,14 @@ public class Player {
 					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
+					if (ROUND < 16 && creatureVx == 0 && creatureVy == 0) {
+						int oppCreatureId = creatureId + (creatureId % 2 == 0 ? 1 : -1);
+						Ugly ugly1 = game.ugliesMap.get(oppCreatureId);
+						if (ugly1 != null && ugly1.pos == null) {
+							ugly1.pos = pos.hsymmetric(Game.CENTER.getX());
+							System.err.println("Estimated oppUgly " + oppCreatureId + " location " + ugly1.pos);
+						}
+					}
 					ugly.pos = pos;
 					ugly.speed = speed;
 					game.visibleUglies.add(ugly);
@@ -191,6 +200,7 @@ public class Player {
 
 			downAndUp.process(radars, scans);
 			FIRST_ROUND = false;
+			ROUND ++;
 		}
 	}
 

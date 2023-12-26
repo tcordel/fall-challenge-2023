@@ -18,7 +18,7 @@ public class DownAndUp {
 
 	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = true;
 	private static final boolean FOE_WINNNING_COMMIT_STRAT = false;
-	private static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = false;
+	private static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = true;
 
 	private final Game game;
 	private final GameEstimator gameEstimator = new GameEstimator();
@@ -307,8 +307,8 @@ public class DownAndUp {
 		}
 
 		if (rd == null) {
-			if (ATTACK_RESSOURCE_ON_NO_ALLOCATION
-				|| (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE))) {
+			if (drone.scans.isEmpty() && (ATTACK_RESSOURCE_ON_NO_ALLOCATION
+				|| (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)))) {
 				direction = applyAttackStrat(drone, isLeft);
 				if (direction != null) {
 					return direction;
@@ -322,8 +322,8 @@ public class DownAndUp {
 		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
 			System.err.println(drone.getId() + " depth too far from target type " + target);
 			return switch (rd) {
-				case BL -> drone.getX() > 2000 ? DOWN_LEFT : DOWN;
-				case BR -> drone.getX() < (Game.WIDTH - 2000) ? DOWN_RIGHT : DOWN;
+				case BL -> drone.getX() > Game.FISH_HEARING_RANGE ? DOWN_LEFT : DOWN;
+				case BR -> drone.getX() < (Game.WIDTH - Game.FISH_HEARING_RANGE) ? DOWN_RIGHT : DOWN;
 				case TL -> UP;
 				case TR -> UP;
 			};

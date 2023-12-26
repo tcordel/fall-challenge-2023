@@ -16,7 +16,7 @@ public class DownAndUp {
 	Vector UP = new Vector(0, -1000);
 	Vector DOWN = new Vector(0, 1000);
 
-	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = false;
+	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = true;
 	private static final boolean FOE_WINNNING_COMMIT_STRAT = false;
 	private static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = false;
 
@@ -47,6 +47,8 @@ public class DownAndUp {
 	boolean[] commit = new boolean[2];
 	boolean commitCalled = false;
 	boolean hasCommitted = false;
+
+	Integer firstWinningIndex = null;
 	List<Set<Integer>> allocations = List.of(new HashSet<>(), new HashSet<>());
 	public void process(Radar[] radars, Set<Integer> scans) {
 		if (!commitCalled) {
@@ -115,18 +117,27 @@ public class DownAndUp {
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
 
-		if (myScoreCommittingFirst > oppMaxScore) {
+		boolean iWin = myScoreCommittingFirst > oppMaxScore;
+		boolean foeWins = oppMaxScore2 > myScoreCommittingFirst2;
+		if (firstWinningIndex == null) {
+			if (iWin) {
+				firstWinningIndex = GamePlayer.ME;
+			} else if (foeWins) {
+				firstWinningIndex = GamePlayer.FOE;
+			}
+		}
+		if (isWinning(GamePlayer.ME)) {
 			System.err.println("COMMIT !!");
 			commitCalled = true;
 			commit[0] = true;
 			commit[1] = true;
 		}
-		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && oppMaxScore2 > myScoreCommittingFirst2) {
-			System.err.println("Loosing, so attacking whatever i can");
-			left = Strat.ATTACK;
-			right = Strat.ATTACK;
-		}
-		if (FOE_WINNNING_COMMIT_STRAT && oppMaxScore2 > myScoreCommittingFirst2) {
+		//		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
+		//			System.err.println("Loosing, so attacking whatever i can");
+		//			left = Strat.ATTACK;
+		//			right = Strat.ATTACK;
+		//		}
+		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
 			System.err.println("OPP can win :(");
 			Map<Integer, List<Drone>> list = game.gamePlayers
 				.stream()
@@ -171,6 +182,10 @@ public class DownAndUp {
 
 		// mon score commit premier + reste potentiel second > reste potentiel premier pour l'autre.
 
+	}
+
+	private boolean isWinning(int index) {
+		return firstWinningIndex != null && firstWinningIndex == index;
 	}
 
 	private int switchOn(int i, Drone drone, Radar radar, FishType target, boolean escaping) {
@@ -292,7 +307,8 @@ public class DownAndUp {
 		}
 
 		if (rd == null) {
-			if (ATTACK_RESSOURCE_ON_NO_ALLOCATION) {
+			if (ATTACK_RESSOURCE_ON_NO_ALLOCATION
+				|| (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE))) {
 				direction = applyAttackStrat(drone, isLeft);
 				if (direction != null) {
 					return direction;

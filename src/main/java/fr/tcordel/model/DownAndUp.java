@@ -17,6 +17,7 @@ public class DownAndUp {
 	Vector DOWN = new Vector(0, 1000);
 
 	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = false;
+	private static final boolean FOE_WINNNING_COMMIT_STRAT = false;
 	private static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = false;
 
 	private final Game game;
@@ -115,12 +116,12 @@ public class DownAndUp {
 			commit[0] = true;
 			commit[1] = true;
 		}
-		if (ATTACK_RESSOURCE_ON_NO_ALLOCATION && oppMaxScore2 > myScoreCommittingFirst2) {
+		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && oppMaxScore2 > myScoreCommittingFirst2) {
 			System.err.println("Loosing, so attacking whatever i can");
 			left = Strat.ATTACK;
 			right = Strat.ATTACK;
 		}
-		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && oppMaxScore2 > myScoreCommittingFirst2) {
+		if (FOE_WINNNING_COMMIT_STRAT && oppMaxScore2 > myScoreCommittingFirst2) {
 			System.err.println("OPP can win :(");
 			Map<Integer, List<Drone>> list = game.gamePlayers
 				.stream()
@@ -326,13 +327,12 @@ public class DownAndUp {
 		if (drone.target == null) {
 			drone.target = game.fishes.stream()
 				.filter(f -> drone.getRadar().containsKey(f.id))
-				.filter(f -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(d -> d.target == f))
+				.filter(f -> game.gamePlayers.get(GamePlayer.ME).drones.stream().allMatch(d -> d.target != f))
 				.filter(f -> !game.gamePlayers.get(GamePlayer.FOE).scans.contains(new Scan(f)))
 				.filter(f -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(d -> d.scans.contains(new Scan(f))))
 				.sorted(Comparator.comparing(f -> -f.getType().ordinal()))
 				.findFirst().orElse(null);
-		}
-		if (drone.target != null) {
+		}		if (drone.target != null) {
 			direction = attackFish.process(drone.target, drone);
 		} else if (isLeft) {
 			left = Strat.UP;
@@ -340,8 +340,10 @@ public class DownAndUp {
 			right = Strat.UP;
 		}
 		if (direction != null
-			&& moveAndCheckNoCollision(drone, direction, 0, false)) {
-			direction = direction.normalize().mult(game.getMoveSpeed(drone));
+			&& moveAndCheckNoCollision(drone, direction, 0, true)) {
+			Vector direction2 = direction.normalize().mult(game.getMoveSpeed(drone));
+			System.err.println("Collision ! " + direction + "->" + direction2);
+			direction = direction2;
 		}
 		return direction;
 	}

@@ -213,7 +213,7 @@ public class DownAndUp {
 	private boolean checkCollision(Drone drone, Vector vector) {
 
 		for (int i = 0; i < 60; i++) {
-			int offset = (i % 2 > 0 ? 1 : -1) * i;
+			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
 			if (moveAndCheckNoCollision(drone, vector, offset, true))
 				return i > 0;
 		}

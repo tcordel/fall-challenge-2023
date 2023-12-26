@@ -248,7 +248,7 @@ public class DownAndUp {
 		Vector direction = null;
 
 		if ((isLeft ? left : right) == Strat.ATTACK) {
-			direction = applyAttackStrat(drone, direction, isLeft);
+			direction = applyAttackStrat(drone, isLeft);
 		}
 		if (direction != null) {
 			return direction;
@@ -288,7 +288,7 @@ public class DownAndUp {
 
 		if (rd == null) {
 			if (ATTACK_RESSOURCE_ON_NO_ALLOCATION) {
-				direction = applyAttackStrat(drone, direction, isLeft);
+				direction = applyAttackStrat(drone, isLeft);
 				if (direction != null) {
 					return direction;
 				}
@@ -323,7 +323,8 @@ public class DownAndUp {
 		return direction;
 	}
 
-	private Vector applyAttackStrat(Drone drone, Vector direction, boolean isLeft) {
+	private Vector applyAttackStrat(Drone drone, boolean isLeft) {
+		Vector direction = null;
 		if (drone.target == null) {
 			drone.target = game.fishes.stream()
 				.filter(f -> drone.getRadar().containsKey(f.id))
@@ -332,7 +333,8 @@ public class DownAndUp {
 				.filter(f -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(d -> d.scans.contains(new Scan(f))))
 				.sorted(Comparator.comparing(f -> -f.getType().ordinal()))
 				.findFirst().orElse(null);
-		}		if (drone.target != null) {
+		}
+		if (drone.target != null) {
 			direction = attackFish.process(drone.target, drone);
 		} else if (isLeft) {
 			left = Strat.UP;

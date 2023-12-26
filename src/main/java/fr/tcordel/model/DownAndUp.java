@@ -55,8 +55,8 @@ public class DownAndUp {
 		preAllocate(radars);
 		resetCaches();
 		Arrays.fill(targets, null);
-		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
-			Drone drone = game.gamePlayers.get(0).drones.get(i);
+		for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
+			Drone drone = game.gamePlayers.get(GamePlayer.ME).drones.get(i);
 			commit[i] = commit[i] && drone.getY() > Game.DRONE_START_Y;
 			Vector vector = commit[i] ? UP : getVector(radars, scans, i, drone);
 			boolean escaping = checkCollision(drone, vector);
@@ -84,34 +84,39 @@ public class DownAndUp {
 	}
 
 	private void checkWinningState() {
-		if (game.gamePlayers.get(0).getScore() > 0 ||
-			game.gamePlayers.get(1).getScore() > 0 ) {
+		if (game.gamePlayers.get(GamePlayer.ME).getScore() > 0 ||
+			game.gamePlayers.get(GamePlayer.FOE).getScore() > 0 ) {
+			System.err.println("No winning state SCORE");
 			return;
 		}
 
 		if (left == Strat.ATTACK || right == Strat.ATTACK) {
+			System.err.println("No winning state ATTACK");
 			return;
 		}
 
 		gameEstimator.reset();
 		gameEstimator2.reset();
 
-		Set<Scan> scans = game.gamePlayers.get(0).drones.stream().flatMap(drone -> drone.scans.stream())
+		Set<Scan> scans = game.gamePlayers.get(GamePlayer.ME).drones.stream().flatMap(drone -> drone.scans.stream())
 			.collect(Collectors.toSet());
-		Set<Scan> scansFoe = game.gamePlayers.get(1).drones.stream().flatMap(drone -> drone.scans.stream())
+		Set<Scan> scansFoe = game.gamePlayers.get(GamePlayer.FOE).drones.stream().flatMap(drone -> drone.scans.stream())
 			.collect(Collectors.toSet());
-		int myCommitPoint = gameEstimator.computeScanScore(scans, game.gamePlayers.get(0).getIndex());
-		int oppMaxScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(1).getIndex());
-		int myScoreCommittingFirst = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(0).getIndex());
+		int myCommitPoint = gameEstimator.computeScanScore(scans, game.gamePlayers.get(GamePlayer.ME).getIndex());
+//		gameEstimator.computeScanScore(scansFoe, game.gamePlayers.get(GamePlayer.FOE).getIndex());
+		int oppMaxScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+		int myScoreCommittingFirst = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 
-		int himCommintPoint = gameEstimator2.computeScanScore(scansFoe, game.gamePlayers.get(1).getIndex());
-		int myScoreCommittingFirst2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(0).getIndex());
-		int oppMaxScore2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(1).getIndex());
+		int himCommintPoint = gameEstimator2.computeScanScore(scansFoe, game.gamePlayers.get(GamePlayer.FOE).getIndex());
+//		gameEstimator2.computeScanScore(scans, game.gamePlayers.get(GamePlayer.ME).getIndex());
+		int myScoreCommittingFirst2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
+		int oppMaxScore2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 		System.err.println("Committing me:%d, him %d".formatted(myCommitPoint, himCommintPoint));
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
 
 		if (myScoreCommittingFirst > oppMaxScore) {
+			System.err.println("COMMIT !!");
 			commitCalled = true;
 			commit[0] = true;
 			commit[1] = true;
@@ -146,8 +151,8 @@ public class DownAndUp {
 					.collect(Collectors.toSet());
 				gameEstimator.commit(myScans, oppScans);
 			});
-			int myScore = gameEstimator.computeFullEndGameScore(GamePlayer.ME);
-			int foeScore = gameEstimator.computeFullEndGameScore(GamePlayer.FOE);
+			int myScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
+			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 			if (myScore >= foeScore) {
 				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
 				commitCalled = true;
@@ -193,17 +198,17 @@ public class DownAndUp {
 
 	private void preAllocate(Radar[] radars) {
 		if (!Player.FIRST_ROUND && !hasCommitted) {
-			for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
-				hasCommitted = game.gamePlayers.get(0).drones.stream().anyMatch(drone -> drone.getY() <= Game.DRONE_START_Y);
+			for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
+				hasCommitted = game.gamePlayers.get(GamePlayer.ME).drones.stream().anyMatch(drone -> drone.getY() <= Game.DRONE_START_Y);
 			}
 		}
-		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
+		for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
 			allocations.get(i).clear();
 		}
 		if (hasCommitted) {
 			return;
 		}
-		for (int i = 0; i < game.gamePlayers.get(0).drones.size(); i++) {
+		for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
 			boolean isLeft = leftIndex == i;
 			allocations.get(i).addAll(isLeft ? radars[i].bottomLeft : radars[i].bottomRight);
 			allocations.get(i).addAll(isLeft ? radars[i].topLeft : radars[i].topRight);

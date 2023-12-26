@@ -1,11 +1,21 @@
 package fr.tcordel.model;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Player {
 
 	static Game game = new Game();
 	static DownAndUp downAndUp = new DownAndUp(game);
+
+	public static Set<Scan> ALL_SCANS = Arrays.stream(FishType.values())
+		.flatMap(fishType -> IntStream.range(0, Game.COLORS_PER_FISH).mapToObj(i -> new Scan(fishType, i)))
+		.collect(Collectors.toSet());
+
+	public static Set<Scan> ALL_AVAILABLE_SCANS = Arrays.stream(FishType.values())
+		.flatMap(fishType -> IntStream.range(0, Game.COLORS_PER_FISH).mapToObj(i -> new Scan(fishType, i)))
+		.collect(Collectors.toSet());
 	public static boolean FIRST_ROUND = true;
 
 	public static void main(String args[]) {
@@ -163,12 +173,16 @@ public class Player {
 				}
 			}
 			int radarBlipCount = in.nextInt();
+			ALL_AVAILABLE_SCANS.clear();
 			for (int i = 0; i < radarBlipCount; i++) {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
 				String radar = in.next();
 //				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
 				RadarDirection radarDirection = RadarDirection.valueOf(radar);
+				if (game.fishesMap.containsKey(creatureId)) {
+					ALL_AVAILABLE_SCANS.add(new Scan(game.fishesMap.get(creatureId)));
+				}
 				if (!scans.contains(creatureId)) {
 					radars[droneIdToIndex.get(droneId)].populate(creatureId, radarDirection);
 				}

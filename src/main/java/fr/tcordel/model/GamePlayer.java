@@ -28,6 +28,11 @@ public class GamePlayer extends AbstractMultiplayerPlayer {
 		countFishSaved = new ArrayList<Integer>();
 	}
 
+	public GamePlayer(int index) {
+		this();
+		setIIndex(index);
+	}
+
 	@Override
 	public int getExpectedOutputLines() {
 		return drones.size();

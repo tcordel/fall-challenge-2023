@@ -129,4 +129,8 @@ public class Drone implements Entity {
     public Map<Integer, RadarDirection> getRadar() {
         return radar;
     }
+
+    public List<Scan> getScans() {
+        return scans;
+    }
 }

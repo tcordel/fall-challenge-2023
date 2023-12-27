@@ -1,6 +1,13 @@
 package fr.tcordel.model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,7 +48,7 @@ public class Player {
 				game.fishesMap.put(creatureId, fish);
 				game.fishes.add(fish);
 			} else {
-				Ugly ugly = new Ugly(0, 0, creatureId);
+				Ugly ugly = new Ugly(creatureId);
 				game.uglies.add(ugly);
 				game.ugliesMap.put(creatureId, ugly);
 			}
@@ -118,8 +125,7 @@ public class Player {
 				}
 
 				Drone drone = game.gamePlayers.get(0).drones.get(i);
-				drone.pos = new Vector(droneX, droneY);
-				drone.battery = battery;
+				refreshDrone(drone, droneX, droneY, emergency, battery);
 			}
 			int foeDroneCount = in.nextInt();
 			for (int i = 0; i < foeDroneCount; i++) {
@@ -134,9 +140,13 @@ public class Player {
 					game.dronesMap.put(droneId, drone);
 				}
 				Drone drone = game.gamePlayers.get(1).drones.get(i);
-				drone.pos = new Vector(droneX, droneY);
-				drone.battery = battery;
+				refreshDrone(drone, droneX, droneY, emergency, battery);
 			}
+
+			if (!FIRST_ROUND) {
+				game.performGameUpdate(ROUND);
+			}
+
 			int droneScanCount = in.nextInt();
 			game.dronesMap.values().forEach(drone -> drone.scans.clear());
 			for (int i = 0; i < droneScanCount; i++) {
@@ -150,8 +160,6 @@ public class Player {
 				}
 			}
 			int visibleCreatureCount = in.nextInt();
-			game.fishes.forEach(fish -> fish.speed = null);
-			game.uglies.forEach(ugly -> ugly.speed = null);
 			for (int i = 0; i < visibleCreatureCount; i++) {
 				int creatureId = in.nextInt();
 				int creatureX = in.nextInt();
@@ -160,15 +168,16 @@ public class Player {
 				int creatureVy = in.nextInt();
 				Vector pos = new Vector(creatureX, creatureY);
 				Vector speed = new Vector(creatureVx, creatureVy);
-
 				if (game.fishesMap.containsKey(creatureId)) {
 					Fish fish = game.fishesMap.get(creatureId);
+
 					fish.pos = pos;
 					fish.speed = speed;
 					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
-					if (ROUND < 16 && creatureVx == 0 && creatureVy == 0) {
+					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
+					if (ROUND < 200) { // todo : revert processing position retrieval
 						int oppCreatureId = creatureId + (creatureId % 2 == 0 ? 1 : -1);
 						Ugly ugly1 = game.ugliesMap.get(oppCreatureId);
 						if (ugly1 != null && ugly1.pos == null) {
@@ -202,6 +211,17 @@ public class Player {
 			FIRST_ROUND = false;
 			ROUND ++;
 		}
+	}
+
+	private static void refreshDrone(Drone drone, int droneX, int droneY, int emergency, int battery) {
+		drone.lastPos = drone.pos;
+		drone.pos = new Vector(droneX, droneY);
+		if (!FIRST_ROUND) {
+			drone.speed = new Vector(drone.lastPos, drone.pos);
+		}
+		drone.dead = emergency == 1;
+		drone.lightOn = battery < drone.battery;
+		drone.battery = battery;
 	}
 
 }

@@ -360,7 +360,7 @@ public class DownAndUp extends AbstractStrat {
 			right = Strat.UP;
 		}
 		if (direction != null) {
-			boolean collision = moveAndCheckNoCollision(drone, direction, 0, true);
+			boolean collision = !moveAndCheckNoCollision(drone, direction, 0, true);
 			System.err.println("Attacking collision check for drone " + drone.id + ": " + collision);
 			if (collision) {
 				Vector vector = filterDirection(drone, drone.pos.add(direction), direction, 0, Game.HEIGHT);

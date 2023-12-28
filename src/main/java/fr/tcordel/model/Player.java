@@ -103,16 +103,27 @@ public class Player {
 				radar.reset();
 			}
 			game.dronesMap.values().forEach(Drone::resetRadars);
+			int lastDroneX = 0;
 			for (int i = 0; i < myDroneCount; i++) {
 				int droneId = in.nextInt();
 				int droneX = in.nextInt();
 				int droneY = in.nextInt();
 				int emergency = in.nextInt();
 				int battery = in.nextInt();
+				if (i == 1) {
+					if (downAndUp.leftIndex == 0) {
+						if (droneX < (lastDroneX + 100)) {
+							downAndUp.leftIndex = 1;
+						}
+					} else {
+						if (lastDroneX < (droneX + 100)) {
+							downAndUp.leftIndex = 0;
+						}
+					}
+				}
 				if (FIRST_ROUND) {
 					myDonesId.add(droneId);
 					if (i == 0 && droneX > (Game.WIDTH / 2)) {
-						downAndUp.leftIndex = 1;
 						System.err.println("switching targets " + droneId + ", " + droneX);
 						List<Vector> tmp = targets[0];
 						targets[0] = targets[1];
@@ -126,7 +137,9 @@ public class Player {
 
 				Drone drone = game.gamePlayers.get(0).drones.get(i);
 				refreshDrone(drone, droneX, droneY, emergency, battery);
+				lastDroneX = droneX;
 			}
+
 			int foeDroneCount = in.nextInt();
 			for (int i = 0; i < foeDroneCount; i++) {
 				int droneId = in.nextInt();
@@ -176,7 +189,7 @@ public class Player {
 					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
-//					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
+					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
 					if (ROUND < 200) { // todo : revert processing position retrieval
 						int oppCreatureId = creatureId + (creatureId % 2 == 0 ? 1 : -1);
 						Ugly ugly1 = game.ugliesMap.get(oppCreatureId);

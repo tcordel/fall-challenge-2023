@@ -319,7 +319,7 @@ public class Game {
                 Vector from = ugly.pos;
                 ugly.pos = from.add(ugly.speed);
                 snapToUglyZone(ugly);
-//                System.err.println("Move ugly " + ugly.id + " from " + from + " to " + ugly.pos + " speed" + ugly.getSpeed());
+                System.err.println("Move ugly " + ugly.id + " from " + from + " to " + ugly.pos + " speed" + ugly.getSpeed());
             }
         }
     }
@@ -1146,6 +1146,7 @@ public class Game {
     Collision getCollision(Drone drone, Ugly ugly) {
         // Check instant collision
         if (ugly.getPos().inRange(drone.getPos(), DRONE_HIT_RANGE + UGLY_EAT_RANGE)) {
+            System.err.println("Collision with " + ugly.id + "," + ugly.pos);
             return new Collision(0.0, ugly, drone);
         }
 
@@ -1195,6 +1196,7 @@ public class Game {
         if (t > 1.0) {
             return Collision.NONE;
         }
+        System.err.println("Collision with " + ugly.id + "," + ugly.pos);
         return new Collision(t, ugly, drone);
     }
 

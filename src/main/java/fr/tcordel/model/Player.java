@@ -197,7 +197,7 @@ public class Player {
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
 					//					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
-					if (ROUND < 200) { // todo : revert processing position retrieval
+					if (ROUND < 200 && !downAndUp.commitCalled) { // todo : revert processing position retrieval
 						int oppCreatureId = creatureId + (creatureId % 2 == 0 ? 1 : -1);
 						Ugly ugly1 = game.ugliesMap.get(oppCreatureId);
 						if (ugly1 != null && ugly1.pos == null) {
@@ -244,7 +244,7 @@ public class Player {
 		drone.lightOn = battery < drone.battery;
 		drone.battery = battery;
 		if (drone.id == 0) {
-			System.err.println("Drone " + drone.pos + ", " + drone.move);
+			System.err.println("Drone " + drone.pos + ", " + drone.move + "-" + drone.dead);
 		}
 	}
 

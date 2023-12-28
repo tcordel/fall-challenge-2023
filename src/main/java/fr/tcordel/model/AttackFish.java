@@ -8,7 +8,7 @@ public class AttackFish extends AbstractStrat {
 	Vector process(Fish fish, Drone drone) {
 		Vector target = null;
 		boolean visible = false;
-		if (game.visibleFishes.contains(fish)) {
+		if (fish.pos != null) {
 			visible = true;
 			//			game.updateSingleFleeingFish(fish, drone);
 			int offset = ((fish.pos.getX() < (Game.WIDTH / 2)) ?  1 : -1) * 200;

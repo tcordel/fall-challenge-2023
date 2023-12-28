@@ -15,9 +15,9 @@ public class DownAndUp extends AbstractStrat {
 	private final AttackFish attackFish;
 
 
-	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = true;
-	private static final boolean FOE_WINNNING_COMMIT_STRAT = false;
-	private static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = true;
+	public static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = true;
+	public static final boolean FOE_WINNNING_COMMIT_STRAT = false;
+	public static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = true;
 
 	private final GameEstimator gameEstimator = new GameEstimator();
 	private final GameEstimator gameEstimator2 = new GameEstimator();
@@ -205,9 +205,9 @@ public class DownAndUp extends AbstractStrat {
 		boolean lightOn = false;
 		game.updateDrone(drone);
 		if (!escaping
-			&& !batterieToogle[i]
 			&& drone.getY() >= FishType.JELLY.getUpperLimit()
-//			&& isInRange(drone, radar.getTypes(game.fishesMap))
+			&& (!batterieToogle[i] || (drone.move.getY() > 6700 && drone.battery > 10))
+			&& target != null && isInRange(drone, radar.getTypes(game.fishesMap))
 		) {
 			lightOn = true;
 		}
@@ -216,7 +216,7 @@ public class DownAndUp extends AbstractStrat {
 	}
 
 	private boolean isInRange(Drone drone, Set<FishType> target) {
-		FishType zoneType = FishType.forY(drone.getY(), game.getMoveSpeed(drone) / 3);
+		FishType zoneType = FishType.forY(drone.move.getY(), game.getMoveSpeed(drone) / 2);
 		if (zoneType == null) {
 			return false;
 		}
@@ -303,7 +303,7 @@ public class DownAndUp extends AbstractStrat {
 		}
 
 		if (rd == null) {
-			if (drone.scans.isEmpty() && (ATTACK_RESSOURCE_ON_NO_ALLOCATION
+			if (game.uglies.size() <= 2 && (ATTACK_RESSOURCE_ON_NO_ALLOCATION
 				|| (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)))) {
 				direction = applyAttackStrat(drone, isLeft);
 				if (direction != null) {

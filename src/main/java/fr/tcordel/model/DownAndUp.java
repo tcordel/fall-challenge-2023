@@ -274,21 +274,21 @@ public class DownAndUp extends AbstractStrat {
 		Radar radarForType;
 		FishType target = null;
 
-		Optional<Fish> fishToAttack = drone.scans.stream()
-			.filter(scan -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
-			.map(scan -> game.fishesMap.get(scan.fishId))
-			.filter(fish -> isLeft ? (fish.getX() < Game.FISH_FLEE_SPEED * 2) : (fish.getX() > (Game.WIDTH - Game.FISH_FLEE_SPEED * 2)))
-			.filter(fish -> fish.pos.euclideanTo(drone.pos) < (Game.FISH_HEARING_RANGE + Game.DRONE_MOVE_SPEED))
-			.filter(fish -> game.gamePlayers.get(GamePlayer.FOE).drones.stream()
-				.allMatch(opp -> fish.pos.euclideanTo(opp.pos) > (Game.LIGHT_SCAN_RANGE + Game.DRONE_MOVE_SPEED - Game.FISH_FLEE_SPEED)))
-			.findFirst();
-
-		if (fishToAttack.isPresent()) {
-			direction = applyAttackStrat(drone, isLeft);
-			if (direction != null) {
-				return direction;
-			}
-		}
+//		Optional<Fish> fishToAttack = drone.scans.stream()
+//			.filter(scan -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
+//			.map(scan -> game.fishesMap.get(scan.fishId))
+//			.filter(fish -> isLeft ? (fish.getX() < Game.FISH_FLEE_SPEED * 2) : (fish.getX() > (Game.WIDTH - Game.FISH_FLEE_SPEED * 2)))
+//			.filter(fish -> fish.pos.euclideanTo(drone.pos) < (Game.FISH_HEARING_RANGE + Game.DRONE_MOVE_SPEED))
+//			.filter(fish -> game.gamePlayers.get(GamePlayer.FOE).drones.stream()
+//				.allMatch(opp -> fish.pos.euclideanTo(opp.pos) > (Game.LIGHT_SCAN_RANGE + Game.DRONE_MOVE_SPEED - Game.FISH_FLEE_SPEED)))
+//			.findFirst();
+//
+//		if (fishToAttack.isPresent()) {
+//			direction = applyAttackStrat(drone, isLeft);
+//			if (direction != null) {
+//				return direction;
+//			}
+//		}
 
 		for (FishType fishType : FishType.FISH_ORDERED) {
 			radarForType = radarForDrone.forType(game.fishesMap, fishType);

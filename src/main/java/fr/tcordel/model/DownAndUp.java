@@ -204,10 +204,23 @@ public class DownAndUp extends AbstractStrat {
 	private int switchOn(int i, Drone drone, Radar radar, FishType target, boolean escaping) {
 		boolean lightOn = false;
 		game.updateDrone(drone);
-		if (!escaping
-			&& drone.getY() >= FishType.JELLY.getUpperLimit()
+		boolean needLight = game.uglies.stream().anyMatch(ugly -> ugly.pos == null)
+			|| game.fishes.stream().anyMatch(ugly -> ugly.pos == null)
+			|| game.fishes.stream().anyMatch(fish -> {
+			Scan scan = new Scan(fish);
+			if (drone.scans.contains(scan) || game.gamePlayers.get(GamePlayer.ME).scans.contains(scan)) {
+					return false;
+				}
+			double distance = drone.move.distance(fish.pos);
+			return distance > (Game.DARK_SCAN_RANGE - Game.FISH_FLEE_SPEED)
+				   && distance < (Game.LIGHT_SCAN_RANGE);
+		});
+		if (
+//			!escaping&&
+			drone.getY() >= FishType.JELLY.getUpperLimit()
 			&& (!batterieToogle[i] || (drone.move.getY() > 6700 && drone.battery > 10))
 			&& target != null && isInRange(drone, radar.getTypes(game.fishesMap))
+			&& needLight
 		) {
 			lightOn = true;
 		}
@@ -246,11 +259,12 @@ public class DownAndUp extends AbstractStrat {
 
 	public boolean checkCollision(Drone drone, Vector vector) {
 
-		for (int i = 0; i < 72; i++) {
+		for (int i = 0; i < 360; i++) {
 			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
 			if (moveAndCheckNoCollision(drone, vector, offset, true))
 				return i > 0;
 		}
+		System.err.println("No escape found for drone " + drone.id + ", " + drone.pos + "@" + vector);
 		drone.move = drone.pos.add(vector);
 		return true;
 	}
@@ -380,9 +394,7 @@ public class DownAndUp extends AbstractStrat {
 			boolean collision = !moveAndCheckNoCollision(drone, direction, 0, true);
 			System.err.println("Attacking collision check for drone " + drone.id + ": " + collision);
 			if (collision) {
-				Vector vector = filterDirection(drone, drone.pos.add(direction), direction, 0, Game.HEIGHT);
-				Vector direction2 = vector
-					.normalize().mult(game.getMoveSpeed(drone));
+				Vector direction2 = filterDirection(drone, drone.pos.add(direction), direction, 0, Game.HEIGHT);
 				System.err.println("Collision ! " + direction + "->" + direction2);
 				direction = direction2;
 			}
@@ -397,9 +409,9 @@ public class DownAndUp extends AbstractStrat {
 		Vector vector = drone.pos.add(direction);
 		drone.move = vector;
 		game.updateDrone(drone);
-		boolean processFilter = game.visibleUglies.isEmpty() ||
-								game.visibleUglies
+		boolean processFilter = game.uglies
 									.stream()
+									.filter(ugly -> ugly.pos != null)
 									.allMatch(u -> game.getCollision(drone, u) == Collision.NONE);
 
 		if (!processFilter) {
@@ -408,8 +420,7 @@ public class DownAndUp extends AbstractStrat {
 			yLimit = Game.HEIGHT;
 		}
 
-		direction = filterDirection(drone, vector, direction, xLimit, yLimit);
-		return direction;
+		return filterDirection(drone, vector, direction, xLimit, yLimit);
 	}
 
 	private RadarDirection checkForType(int i, List<Integer> integers, RadarDirection radarDirection) {

@@ -4,6 +4,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.List;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static fr.tcordel.model.Game.DRONE_MOVE_SPEED;
+
 public class GameUtils {
 
 	static Game initGame(long seed) throws NoSuchAlgorithmException {
@@ -35,5 +40,11 @@ public class GameUtils {
 		game.gamePlayers = List.of(me, foe);
 		game.init();
 		return game;
+	}
+
+	@Test
+	@DisplayName("")
+	void test() {
+		System.err.println(RadarDirection.TL.getDirection().normalize().mult(DRONE_MOVE_SPEED).round());
 	}
 }

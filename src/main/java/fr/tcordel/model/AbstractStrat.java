@@ -3,11 +3,11 @@ package fr.tcordel.model;
 public abstract class AbstractStrat {
 
 	protected final Game game;
-	protected double _5DegToRadians = Math.toRadians(5);
+	protected double _1DegToRadians = Math.toRadians(5);
 	protected double _15DegToRadians = Math.toRadians(15);
 
-	Vector UP = new Vector(0, -1000);
-	Vector DOWN = new Vector(0, 1000);
+	Vector UP = new Vector(0, -Game.DRONE_MOVE_SPEED);
+	Vector DOWN = new Vector(0, Game.DRONE_MOVE_SPEED);
 	Vector DOWN_LEFT = DOWN.rotate(_15DegToRadians).round();
 	Vector DOWN_RIGHT = DOWN.rotate(-_15DegToRadians).round();
 
@@ -16,7 +16,7 @@ public abstract class AbstractStrat {
 
 	boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone) {
 		if (moveDrone) {
-			drone.move = drone.pos.add(vector.rotate(i * _5DegToRadians)).round();
+			drone.move = drone.pos.add(vector.rotate(i * _1DegToRadians)).round();
 			game.updateDrone(drone);
 		}
 		if (game.uglies
@@ -44,13 +44,14 @@ public abstract class AbstractStrat {
 		vector = drone.pos.add(direction);
 		double toYborder = Game.HEIGHT - vector.getY();
 		if (toYborder < yLimit) {
-			System.err.println("Reset Y for drone " + drone.getId());
+			System.err.println("Reset Y for drone " + drone.getId() + " v" + vector+ ", " + yLimit);
 			direction =  new Vector(direction.getX(), 0);
 		}
 		if (direction.getX() == 0 && direction.getY() == 0) {
 			System.err.println("GoingUP for drone " + drone.getId());
 			direction = UP;
 		}
-		return direction;
+		return direction
+			.normalize().mult(game.getMoveSpeed(drone)).round();
 	}
 }

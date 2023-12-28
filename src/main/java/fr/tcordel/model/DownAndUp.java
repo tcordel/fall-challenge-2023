@@ -10,28 +10,22 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DownAndUp {
+public class DownAndUp extends AbstractStrat {
 
 	private final AttackFish attackFish;
-	Vector UP = new Vector(0, -1000);
-	Vector DOWN = new Vector(0, 1000);
+
 
 	private static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = true;
 	private static final boolean FOE_WINNNING_COMMIT_STRAT = false;
 	private static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = true;
 
-	private final Game game;
 	private final GameEstimator gameEstimator = new GameEstimator();
 	private final GameEstimator gameEstimator2 = new GameEstimator();
 	public int leftIndex = 0;
-	private double tenDegToRadians = Math.toRadians(10);
-	private double _15DegToRadians = Math.toRadians(15);
 
-	Vector DOWN_LEFT = DOWN.rotate(_15DegToRadians).round();
-	Vector DOWN_RIGHT = DOWN.rotate(-_15DegToRadians).round();
 
 	public DownAndUp(Game game) {
-		this.game = game;
+		super(game);
 		attackFish = new AttackFish(game);
 	}
 
@@ -52,7 +46,7 @@ public class DownAndUp {
 	List<Set<Integer>> allocations = List.of(new HashSet<>(), new HashSet<>());
 	public void process(Radar[] radars, Set<Integer> scans) {
 		if (!commitCalled) {
-			checkWinningState();
+		checkWinningState();
 		}
 		preAllocate(radars);
 		resetCaches();
@@ -97,6 +91,14 @@ public class DownAndUp {
 			return;
 		}
 
+		boolean foeCommitting = game.gamePlayers
+			.get(GamePlayer.FOE)
+			.drones
+			.stream()
+			.peek(drone -> System.err.println("Speed " + drone.id + " -> " + drone.speed))
+			.map(d -> d.speed)
+			.allMatch(s -> s.equals(Vector.UP));
+
 		gameEstimator.reset();
 		gameEstimator2.reset();
 
@@ -117,6 +119,17 @@ public class DownAndUp {
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
 
+		boolean iWillCommitFirst = !foeCommitting ||
+								   game.gamePlayers
+									   .get(GamePlayer.ME)
+									   .drones.stream()
+									   .map(d -> d.pos)
+									   .anyMatch(p -> p.getX() <= (Game.DRONE_MOVE_SPEED / 2) + game.gamePlayers
+										   .get(GamePlayer.FOE)
+										   .drones.stream()
+										   .map(d -> d.pos)
+										   .mapToDouble(Vector::getX)
+										   .min().orElse(Double.MAX_VALUE));
 		boolean iWin = myScoreCommittingFirst > oppMaxScore;
 		boolean foeWins = oppMaxScore2 > myScoreCommittingFirst2;
 		if (firstWinningIndex == null) {
@@ -242,23 +255,6 @@ public class DownAndUp {
 		return true;
 	}
 
-	private boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone) {
-		if (moveDrone) {
-			drone.move = drone.pos.add(vector.rotate(i * tenDegToRadians));
-			game.updateDrone(drone);
-		}
-		if (game.visibleUglies
-			.stream()
-			.allMatch(u -> game.getCollision(drone, u) == Collision.NONE)) {
-			//			if (i == 0) {
-			//					vector.normalize().mult(game.getMoveSpeed(drone));
-			//			}
-			return true;
-		} else {
-			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i);
-		}
-		return false;
-	}
 
 	FishType[] targets = new FishType[2];
 	private Vector getVector(Radar[] radars, Set<Integer> scans, int i, Drone drone) {
@@ -352,7 +348,8 @@ public class DownAndUp {
 				.filter(f -> game.gamePlayers.get(GamePlayer.ME).drones.stream().allMatch(d -> d.target != f))
 				.filter(f -> !game.gamePlayers.get(GamePlayer.FOE).scans.contains(new Scan(f)))
 				.filter(f -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(d -> d.scans.contains(new Scan(f))))
-				.sorted(Comparator.comparing(f -> -f.getType().ordinal()))
+				.sorted(Comparator.comparingDouble((Fish f) -> f.getPos() == null ? Double.MAX_VALUE : f.getPos().manhattanTo(drone.getPos()))
+					.thenComparing(f -> -f.getType().ordinal()))
 				.findFirst().orElse(null);
 		}
 		if (drone.target != null) {
@@ -362,11 +359,16 @@ public class DownAndUp {
 		} else {
 			right = Strat.UP;
 		}
-		if (direction != null
-			&& moveAndCheckNoCollision(drone, direction, 0, true)) {
-			Vector direction2 = direction.normalize().mult(game.getMoveSpeed(drone));
-			System.err.println("Collision ! " + direction + "->" + direction2);
-			direction = direction2;
+		if (direction != null) {
+			boolean collision = moveAndCheckNoCollision(drone, direction, 0, true);
+			System.err.println("Attacking collision check for drone " + drone.id + ": " + collision);
+			if (collision) {
+				Vector vector = filterDirection(drone, drone.pos.add(direction), direction, 0, Game.HEIGHT);
+				Vector direction2 = vector
+					.normalize().mult(game.getMoveSpeed(drone));
+				System.err.println("Collision ! " + direction + "->" + direction2);
+				direction = direction2;
+			}
 		}
 		return direction;
 	}
@@ -384,31 +386,12 @@ public class DownAndUp {
 									.allMatch(u -> game.getCollision(drone, u) == Collision.NONE);
 
 		if (!processFilter) {
-			System.err.println("No filter target for " + drone.id + " due to collision");
-			return direction;
+			System.err.println("Filter border target only for " + drone.id + " due to collision");
+			xLimit = 0;
+			yLimit = Game.HEIGHT;
 		}
 
 		direction = filterDirection(drone, vector, direction, xLimit, yLimit);
-		return direction;
-	}
-
-	private Vector filterDirection(Drone drone, Vector vector, Vector direction, int xLimit, int yLimit) {
-		double toXborder = Math.min(vector.getX(), Math.abs(vector.getX() - Game.WIDTH));
-		if (toXborder < xLimit) {
-			System.err.println("Reset X for drone " + drone.getId());
-			direction =  new Vector(0, direction.getY());
-		}
-
-		vector = drone.pos.add(direction);
-		double toYborder = Game.HEIGHT - vector.getY();
-		if (toYborder < yLimit) {
-			System.err.println("Reset Y for drone " + drone.getId());
-			direction =  new Vector(direction.getX(), 0);
-		}
-		if (direction.getX() == 0 && direction.getY() == 0) {
-			System.err.println("GoingUP for drone " + drone.getId());
-			direction = UP;
-		}
 		return direction;
 	}
 

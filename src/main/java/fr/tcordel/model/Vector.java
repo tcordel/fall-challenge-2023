@@ -2,6 +2,7 @@ package fr.tcordel.model;
 
 public class Vector {
     public static final Vector ZERO = new Vector(0, 0);
+    public static final Vector UP = new Vector(0, -Game.DRONE_MOVE_SPEED);
     private final double x, y;
 
     @Override

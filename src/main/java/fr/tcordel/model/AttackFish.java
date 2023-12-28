@@ -1,11 +1,9 @@
 package fr.tcordel.model;
 
-public class AttackFish {
-
-	private final Game game;
+public class AttackFish extends AbstractStrat {
 
 	//seed=2740983747143833600
-	public AttackFish(Game game) {this.game = game;}
+	public AttackFish(Game game) {super(game);}
 
 	Vector process(Fish fish, Drone drone) {
 		Vector target = null;

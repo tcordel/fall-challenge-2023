@@ -176,13 +176,13 @@ public class Player {
 					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
-					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
+//					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
 					if (ROUND < 200) { // todo : revert processing position retrieval
 						int oppCreatureId = creatureId + (creatureId % 2 == 0 ? 1 : -1);
 						Ugly ugly1 = game.ugliesMap.get(oppCreatureId);
 						if (ugly1 != null && ugly1.pos == null) {
 							ugly1.pos = pos.hsymmetric(Game.CENTER.getX());
-							System.err.println("Estimated oppUgly " + oppCreatureId + " location " + ugly1.pos);
+//							System.err.println("Estimated oppUgly " + oppCreatureId + " location " + ugly1.pos);
 						}
 					}
 					ugly.pos = pos;

@@ -244,7 +244,7 @@ public class DownAndUp extends AbstractStrat {
 
 	}
 
-	private boolean checkCollision(Drone drone, Vector vector) {
+	public boolean checkCollision(Drone drone, Vector vector) {
 
 		for (int i = 0; i < 72; i++) {
 			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);

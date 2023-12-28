@@ -14,9 +14,9 @@ public abstract class AbstractStrat {
 	protected AbstractStrat(Game game) {this.game = game;}
 
 
-	protected boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone) {
+	boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone) {
 		if (moveDrone) {
-			drone.move = drone.pos.add(vector.rotate(i * _5DegToRadians));
+			drone.move = drone.pos.add(vector.rotate(i * _5DegToRadians)).round();
 			game.updateDrone(drone);
 		}
 		if (game.visibleUglies
@@ -25,9 +25,10 @@ public abstract class AbstractStrat {
 			//			if (i == 0) {
 			//					vector.normalize().mult(game.getMoveSpeed(drone));
 			//			}
+			System.err.println("No Collision spotted : " + drone.id + "," + i + " original vector " + vector);
 			return true;
 		} else {
-			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i);
+//			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i);
 		}
 		return false;
 	}

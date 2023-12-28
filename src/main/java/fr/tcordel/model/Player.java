@@ -1,6 +1,13 @@
 package fr.tcordel.model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,7 +48,7 @@ public class Player {
 				game.fishesMap.put(creatureId, fish);
 				game.fishes.add(fish);
 			} else {
-				Ugly ugly = new Ugly(0, 0, creatureId);
+				Ugly ugly = new Ugly(creatureId);
 				game.uglies.add(ugly);
 				game.ugliesMap.put(creatureId, ugly);
 			}
@@ -96,16 +103,27 @@ public class Player {
 				radar.reset();
 			}
 			game.dronesMap.values().forEach(Drone::resetRadars);
+			int lastDroneX = 0;
 			for (int i = 0; i < myDroneCount; i++) {
 				int droneId = in.nextInt();
 				int droneX = in.nextInt();
 				int droneY = in.nextInt();
 				int emergency = in.nextInt();
 				int battery = in.nextInt();
+				if (i == 1) {
+					if (downAndUp.leftIndex == 0) {
+						if (droneX < (lastDroneX + 100)) {
+							downAndUp.leftIndex = 1;
+						}
+					} else {
+						if (lastDroneX < (droneX + 100)) {
+							downAndUp.leftIndex = 0;
+						}
+					}
+				}
 				if (FIRST_ROUND) {
 					myDonesId.add(droneId);
 					if (i == 0 && droneX > (Game.WIDTH / 2)) {
-						downAndUp.leftIndex = 1;
 						System.err.println("switching targets " + droneId + ", " + droneX);
 						List<Vector> tmp = targets[0];
 						targets[0] = targets[1];
@@ -118,9 +136,10 @@ public class Player {
 				}
 
 				Drone drone = game.gamePlayers.get(0).drones.get(i);
-				drone.pos = new Vector(droneX, droneY);
-				drone.battery = battery;
+				refreshDrone(drone, droneX, droneY, emergency, battery);
+				lastDroneX = droneX;
 			}
+
 			int foeDroneCount = in.nextInt();
 			for (int i = 0; i < foeDroneCount; i++) {
 				int droneId = in.nextInt();
@@ -134,9 +153,20 @@ public class Player {
 					game.dronesMap.put(droneId, drone);
 				}
 				Drone drone = game.gamePlayers.get(1).drones.get(i);
-				drone.pos = new Vector(droneX, droneY);
-				drone.battery = battery;
+				refreshDrone(drone, droneX, droneY, emergency, battery);
 			}
+
+			if (!FIRST_ROUND) {
+				game.performGameUpdate(ROUND);
+			}
+
+			game.dronesMap.values()
+				.forEach(drone -> {
+					drone.pos = drone.move;
+					drone.move = null;
+				});
+
+
 			int droneScanCount = in.nextInt();
 			game.dronesMap.values().forEach(drone -> drone.scans.clear());
 			for (int i = 0; i < droneScanCount; i++) {
@@ -150,8 +180,6 @@ public class Player {
 				}
 			}
 			int visibleCreatureCount = in.nextInt();
-			game.fishes.forEach(fish -> fish.speed = null);
-			game.uglies.forEach(ugly -> ugly.speed = null);
 			for (int i = 0; i < visibleCreatureCount; i++) {
 				int creatureId = in.nextInt();
 				int creatureX = in.nextInt();
@@ -160,15 +188,16 @@ public class Player {
 				int creatureVy = in.nextInt();
 				Vector pos = new Vector(creatureX, creatureY);
 				Vector speed = new Vector(creatureVx, creatureVy);
-
 				if (game.fishesMap.containsKey(creatureId)) {
 					Fish fish = game.fishesMap.get(creatureId);
+
 					fish.pos = pos;
 					fish.speed = speed;
 					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
-					if (ROUND < 16 && creatureVx == 0 && creatureVy == 0) {
+					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
+					if (ROUND < 200 && creatureVx == 0 && creatureVy == 0) { // todo : revert processing position retrieval
 						int oppCreatureId = creatureId + (creatureId % 2 == 0 ? 1 : -1);
 						Ugly ugly1 = game.ugliesMap.get(oppCreatureId);
 						if (ugly1 != null && ugly1.pos == null) {
@@ -201,6 +230,21 @@ public class Player {
 			downAndUp.process(radars, scans);
 			FIRST_ROUND = false;
 			ROUND ++;
+		}
+	}
+
+	private static void refreshDrone(Drone drone, int droneX, int droneY, int emergency, int battery) {
+		drone.move = new Vector(droneX, droneY);
+		Vector lastPos = drone.pos;
+		drone.pos = new Vector(droneX, droneY);
+		if (!FIRST_ROUND) {
+			drone.speed = new Vector(lastPos, drone.pos);
+		}
+		drone.dead = emergency == 1;
+		drone.lightOn = battery < drone.battery;
+		drone.battery = battery;
+		if (drone.id == 0) {
+			System.err.println("Drone " + drone.pos + ", " + drone.move + "-" + drone.dead);
 		}
 	}
 

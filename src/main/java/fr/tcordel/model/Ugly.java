@@ -13,6 +13,12 @@ public class Ugly implements Entity {
         this.speed = Vector.ZERO;
         this.target = null;
     }
+    public Ugly(int id) {
+        this.id = id;
+        this.pos = null;
+        this.speed = Vector.ZERO;
+        this.target = null;
+    }
 
     @Override
     public Vector getPos() {

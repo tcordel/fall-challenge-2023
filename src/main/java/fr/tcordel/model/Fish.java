@@ -16,6 +16,20 @@ public class Fish implements Entity {
         this.type = type;
         this.color = color;
         this.id = id;
+        switch (type) {
+            case JELLY -> {
+                lowY = 1 * Game.HEIGHT / 4;
+                highY = 2 * Game.HEIGHT / 4;
+			}
+            case FISH -> {
+                lowY = 2 * Game.HEIGHT / 4;
+                highY = 3 * Game.HEIGHT / 4;
+            }
+            case CRAB -> {
+                lowY = 3 * Game.HEIGHT / 4;
+                highY = 4 * Game.HEIGHT / 4;
+            }
+        }
     }
 
     public Fish(double x, double y, FishType type, int color, int id, int lowY, int highY) {

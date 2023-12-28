@@ -3,7 +3,7 @@ package fr.tcordel.model;
 public abstract class AbstractStrat {
 
 	protected final Game game;
-	protected double tenDegToRadians = Math.toRadians(10);
+	protected double _5DegToRadians = Math.toRadians(5);
 	protected double _15DegToRadians = Math.toRadians(15);
 
 	Vector UP = new Vector(0, -1000);
@@ -16,7 +16,7 @@ public abstract class AbstractStrat {
 
 	protected boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone) {
 		if (moveDrone) {
-			drone.move = drone.pos.add(vector.rotate(i * tenDegToRadians));
+			drone.move = drone.pos.add(vector.rotate(i * _5DegToRadians));
 			game.updateDrone(drone);
 		}
 		if (game.visibleUglies

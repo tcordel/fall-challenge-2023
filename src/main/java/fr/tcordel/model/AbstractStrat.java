@@ -19,8 +19,9 @@ public abstract class AbstractStrat {
 			drone.move = drone.pos.add(vector.rotate(i * _5DegToRadians)).round();
 			game.updateDrone(drone);
 		}
-		if (game.visibleUglies
+		if (game.uglies
 			.stream()
+			.filter(ugly -> ugly.pos != null)
 			.allMatch(u -> game.getCollision(drone, u) == Collision.NONE)) {
 			//			if (i == 0) {
 			//					vector.normalize().mult(game.getMoveSpeed(drone));

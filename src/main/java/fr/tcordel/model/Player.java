@@ -160,6 +160,13 @@ public class Player {
 				game.performGameUpdate(ROUND);
 			}
 
+			game.dronesMap.values()
+				.forEach(drone -> {
+					drone.pos = drone.move;
+					drone.move = null;
+				});
+
+
 			int droneScanCount = in.nextInt();
 			game.dronesMap.values().forEach(drone -> drone.scans.clear());
 			for (int i = 0; i < droneScanCount; i++) {
@@ -189,7 +196,7 @@ public class Player {
 					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);
-					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
+					//					System.err.println("Ugly " + creatureId + "@" + pos + "," + speed);
 					if (ROUND < 200) { // todo : revert processing position retrieval
 						int oppCreatureId = creatureId + (creatureId % 2 == 0 ? 1 : -1);
 						Ugly ugly1 = game.ugliesMap.get(oppCreatureId);
@@ -227,14 +234,18 @@ public class Player {
 	}
 
 	private static void refreshDrone(Drone drone, int droneX, int droneY, int emergency, int battery) {
-		drone.lastPos = drone.pos;
+		drone.move = new Vector(droneX, droneY);
+		Vector lastPos = drone.pos;
 		drone.pos = new Vector(droneX, droneY);
 		if (!FIRST_ROUND) {
-			drone.speed = new Vector(drone.lastPos, drone.pos);
+			drone.speed = new Vector(lastPos, drone.pos);
 		}
 		drone.dead = emergency == 1;
 		drone.lightOn = battery < drone.battery;
 		drone.battery = battery;
+		if (drone.id == 0) {
+			System.err.println("Drone " + drone.pos + ", " + drone.move);
+		}
 	}
 
 }

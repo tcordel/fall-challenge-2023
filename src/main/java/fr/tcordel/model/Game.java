@@ -450,6 +450,9 @@ public class Game {
                 Vector fleeVec = fleeDir.mult(FISH_FLEE_SPEED);
                 fish.speed = fleeVec.round();
                 fish.isFleeing = true;
+                if (fish.id == 8) {
+                    System.err.println("Flee from " + fleeFrom +  " pos " + fish.pos + "@" + fish.speed);
+                }
             } else {
 
                 //                Closest<Fish> closestFishes = getClosestTo(
@@ -485,6 +488,7 @@ public class Game {
 
                 Vector nextPos = fish.pos.add(swimVec);
 
+
                 if (
                     nextPos.getX() < 0 && nextPos.getX() < fish.pos.getX() ||
                         nextPos.getX() > WIDTH - 1 && nextPos.getX() > fish.pos.getX()
@@ -499,6 +503,9 @@ public class Game {
                         nextPos.getY() > yHighest && nextPos.getY() > fish.pos.getY()
                 ) {
                     swimVec = swimVec.vsymmetric();
+                }
+                if (fish.id == 8) {
+                    System.err.println("Fish " + fish.id + " pos " + fish.pos + "@" + fish.speed);
                 }
                 fish.speed = swimVec.epsilonRound().round();
             }
@@ -1146,7 +1153,7 @@ public class Game {
     Collision getCollision(Drone drone, Ugly ugly) {
         // Check instant collision
         if (ugly.getPos().inRange(drone.getPos(), DRONE_HIT_RANGE + UGLY_EAT_RANGE)) {
-            System.err.println("Collision with " + ugly.id + "," + ugly.pos);
+//            System.err.println("Collision with " + ugly.id + "," + ugly.pos);
             return new Collision(0.0, ugly, drone);
         }
 
@@ -1196,7 +1203,7 @@ public class Game {
         if (t > 1.0) {
             return Collision.NONE;
         }
-        System.err.println("Collision with " + ugly.id + "," + ugly.pos);
+//        System.err.println("Collision with " + ugly.id + "," + ugly.pos);
         return new Collision(t, ugly, drone);
     }
 

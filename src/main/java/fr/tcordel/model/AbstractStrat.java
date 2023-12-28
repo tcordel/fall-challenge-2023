@@ -26,7 +26,7 @@ public abstract class AbstractStrat {
 			//			if (i == 0) {
 			//					vector.normalize().mult(game.getMoveSpeed(drone));
 			//			}
-			System.err.println("No Collision spotted : " + drone.id + "," + i + " original vector " + vector);
+//			System.err.println("No Collision spotted : " + drone.id + "," + i + " original vector " + vector);
 			return true;
 		} else {
 //			System.err.println("Collision spotted, new attemps processing for " + drone.id + "," + i);

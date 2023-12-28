@@ -8,7 +8,6 @@ import java.util.Map;
 public class Drone implements Entity {
 
     Vector pos;
-    Vector lastPos;
     Vector move;
     Vector speed;
 

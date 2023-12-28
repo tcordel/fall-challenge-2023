@@ -101,7 +101,6 @@ public class GameEstimator {
 	}
 
 	private int computeGameScore(int playerIndex, Set<Scan> scans) {
-		System.err.println(playerIndex + ", " + scans.size());
 		int total = 0;
 		for (Scan scan : scans) {
 			total += scan.type.ordinal() + 1;

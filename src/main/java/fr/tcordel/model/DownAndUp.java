@@ -95,7 +95,7 @@ public class DownAndUp extends AbstractStrat {
 			.get(GamePlayer.FOE)
 			.drones
 			.stream()
-			.peek(drone -> System.err.println("Speed " + drone.id + " -> " + drone.speed))
+//			.peek(drone -> System.err.println("Speed " + drone.id + " -> " + drone.speed))
 			.map(d -> d.speed)
 			.allMatch(s -> s.equals(Vector.UP));
 

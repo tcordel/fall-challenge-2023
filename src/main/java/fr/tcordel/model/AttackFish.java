@@ -11,9 +11,10 @@ public class AttackFish extends AbstractStrat {
 		if (fish.pos != null) {
 			visible = true;
 			//			game.updateSingleFleeingFish(fish, drone);
-			int offset = ((fish.pos.getX() < (Game.WIDTH / 2)) ?  1 : -1) * 200;
-			target = new Vector((int)fish.pos.getX() + offset - drone.getX(),
-				(int)fish.pos.getY() - drone.getY());
+			Vector pos = fish.pos.add(fish.speed);
+			int offset = ((pos.getX() < (Game.WIDTH / 2)) ?  1 : -1) * 200;
+			target = new Vector((int)pos.getX() + offset - drone.getX(),
+				(int)pos.getY() - drone.getY());
 		} else {
 			target = drone.getRadar().get(fish.id)
 				.getDirection();

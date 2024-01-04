@@ -29,6 +29,8 @@ public class Drone implements Entity {
     public Fish target;
 
     Map<Integer, RadarDirection> radar = new HashMap<>();
+
+    Strat strat = Strat.DOWN;
     
     /* stats */
     int maxTurnsSpentWithScan;

@@ -458,6 +458,17 @@ public class Game {
 
     }
 
+    public Vector snapToFishZone(Vector pos, Fish fish) {
+        if (pos.getY() > HEIGHT - 1) {
+            return new Vector(pos.getX(), HEIGHT - 1);
+        } else if (pos.getY() > fish.highY) {
+            return new Vector(pos.getX(), fish.highY);
+        } else if (pos.getY() < fish.lowY) {
+            return new Vector(pos.getX(), fish.lowY);
+        }
+        return pos;
+    }
+
     void updateDrones() {
         for (iPlayer = 0; iPlayer < 2; iPlayer++) {
             GamePlayer p = gamePlayers.get(iPlayer);

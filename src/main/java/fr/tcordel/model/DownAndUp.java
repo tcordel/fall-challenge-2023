@@ -29,14 +29,6 @@ public class DownAndUp extends AbstractStrat {
 		attackFish = new AttackFish(game);
 	}
 
-	enum Strat {
-		DOWN, UP, ATTACK
-	}
-
-
-	Strat left = Strat.DOWN;
-	Strat right = Strat.DOWN;
-
 	boolean[] batterieToogle = new boolean[2];
 	boolean[] commit = new boolean[2];
 	boolean commitCalled = false;
@@ -86,7 +78,7 @@ public class DownAndUp extends AbstractStrat {
 			return;
 		}
 
-		if (left == Strat.ATTACK || right == Strat.ATTACK) {
+		if (game.gamePlayers.get(GamePlayer.ME).drones.stream().anyMatch(drone -> drone.strat == Strat.ATTACK)) {
 			System.err.println("No winning state ATTACK");
 			return;
 		}
@@ -147,8 +139,8 @@ public class DownAndUp extends AbstractStrat {
 		}
 		//		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
 		//			System.err.println("Loosing, so attacking whatever i can");
-		//			left = Strat.ATTACK;
-		//			right = Strat.ATTACK;
+		//			game.gamePlayers.get(GamePlayer.ME).drones
+		//				.forEach(drone -> drone.strat = Strat.ATTACK);
 		//		}
 		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
 			System.err.println("OPP can win :(");
@@ -278,7 +270,7 @@ public class DownAndUp extends AbstractStrat {
 
 		Vector direction = null;
 
-		if ((isLeft ? left : right) == Strat.ATTACK) {
+		if (drone.strat == Strat.ATTACK) {
 			direction = applyAttackStrat(drone, isLeft);
 		}
 		if (direction != null) {
@@ -377,6 +369,7 @@ public class DownAndUp extends AbstractStrat {
 		Vector direction = null;
 		if (drone.target == null) {
 			drone.target = game.fishes.stream()
+				.filter(f -> !f.escaped)
 				.filter(f -> drone.getRadar().containsKey(f.id))
 				.filter(f -> game.gamePlayers.get(GamePlayer.ME).drones.stream().allMatch(d -> d.target != f))
 				.filter(f -> !game.gamePlayers.get(GamePlayer.FOE).scans.contains(new Scan(f)))
@@ -387,10 +380,8 @@ public class DownAndUp extends AbstractStrat {
 		}
 		if (drone.target != null) {
 			direction = attackFish.process(drone.target, drone);
-		} else if (isLeft) {
-			left = Strat.UP;
 		} else {
-			right = Strat.UP;
+			drone.strat = Strat.UP;
 		}
 		if (direction != null) {
 			boolean collision = !moveAndCheckNoCollision(drone, direction, 0, true);

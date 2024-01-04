@@ -7,19 +7,20 @@ public class AttackFish extends AbstractStrat {
 
 	Vector process(Fish fish, Drone drone) {
 		Vector target = null;
+		Vector pos = null;
 		boolean visible = false;
 		if (fish.pos != null) {
 			visible = true;
 			//			game.updateSingleFleeingFish(fish, drone);
-			Vector pos = fish.pos.add(fish.speed);
-			int offset = ((pos.getX() < (Game.WIDTH / 2)) ?  1 : -1) * 200;
+			pos = game.snapToFishZone(fish.pos.add(fish.speed), fish);
+			int offset = ((pos.getX() < (Game.WIDTH / 2)) ?  1 : -1) * Game.FISH_AVOID_RANGE;
 			target = new Vector((int)pos.getX() + offset - drone.getX(),
 				(int)pos.getY() - drone.getY());
 		} else {
 			target = drone.getRadar().get(fish.id)
 				.getDirection();
 		}
-		System.err.println("Drone %d attacking %d, t %s %b".formatted(drone.id, fish.id, target, visible));
+		System.err.printf("Drone %d attacking %d, f.p %s, f.v %s, t %s %b%n", drone.id, fish.id, pos, fish.speed, target, visible);
 		return target;
 	}
 }

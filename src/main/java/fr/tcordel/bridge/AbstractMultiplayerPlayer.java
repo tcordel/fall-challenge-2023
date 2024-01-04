@@ -8,10 +8,6 @@ public abstract class AbstractMultiplayerPlayer extends AbstractPlayer {
 	public AbstractMultiplayerPlayer() {
 	}
 
-	public final int getColorToken() {
-		return -(this.index + 1);
-	}
-
 	public final boolean isActive() {
 		return this.active;
 	}
@@ -28,14 +24,4 @@ public abstract class AbstractMultiplayerPlayer extends AbstractPlayer {
 		super.setScore(score);
 	}
 
-	public final void deactivate() {
-		this.deactivate((String)null);
-	}
-
-	public final void deactivate(String reason) {
-		this.active = false;
-		//        if (reason != null) {
-		//            ((GameManager)this.gameManagerProvider.get()).addTooltip(new Tooltip(this.index, reason));
-		//        }
-	}
 }

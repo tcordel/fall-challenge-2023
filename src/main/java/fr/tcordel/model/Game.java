@@ -50,7 +50,6 @@ public class Game {
     public static final int DRONE_MAX_BATTERY = 30;
     public static final int LIGHT_BATTERY_COST = 5;
     public static final int DRONE_BATTERY_REGEN = 1;
-    public static final int DRONE_MAX_SCANS = Integer.MAX_VALUE;
 
     public static int DARK_SCAN_RANGE = 800;
     public static int LIGHT_SCAN_RANGE = 2000;
@@ -234,49 +233,6 @@ public class Game {
     }
 
     void moveEntities() {
-//        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
-//            GamePlayer p = gamePlayers.get(iPlayer);
-//            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
-//                Drone drone = p.drones.get(iDrone);
-//                if (drone.dead) {
-//                    continue;
-//                }
-//                //NOTE: the collision code does not take into account the snap to map borders
-//                for (iUglies = 0; iUglies < uglies.size(); iUglies++) {
-//                    Ugly ugly = uglies.get(iUglies);
-//                    Collision col = getCollision(drone, ugly);
-//                    if (col.happened()) {
-//                        drone.dying = true;
-//                        drone.scans.clear();
-//                        drone.dieAt = col.t;
-//
-////                        gameSummaryManager.addPlayerSummary(
-////                            p.getNicknameToken(),
-////                            String.format(
-////                                "%s's drone %d is hit by monster %d!",
-////                                p.getNicknameToken(),
-////                                drone.id,
-////                                ugly.id
-////                            )
-////                        );
-//
-//                        dronesEaten++;
-//                        // If two uglies hit the drone, let's just keep the first collision, it matters not.
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-
-//        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
-//            GamePlayer p = gamePlayers.get(iPlayer);
-//            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
-//                Drone drone = p.drones.get(iDrone);
-//                Vector speed = drone.getSpeed();
-//                drone.pos = drone.pos.add(speed);
-//                snapToDroneZone(drone);
-//            }
-//        }
 
         for (iFish = 0; iFish < fishes.size(); iFish++) {
             Fish fish = fishes.get(iFish);
@@ -288,27 +244,6 @@ public class Game {
 //                System.err.println("Move fish " + fish.id + " from " + from + " to " + fish.pos + "pos 2 " + pos2+ " speed" + fish.getSpeed());
             }
         }
-        //        Iterator<Fish> iterator = fishes.iterator();
-        //        while (iterator.hasNext()) {
-        //            Fish fish = iterator.next();
-        //            if (fish.getPos().getX() > WIDTH - 1 || fish.getPos().getX() < 0) {
-        //                if (fish.fleeingFromPlayer != null && fish.fleeingFromPlayer != -1) {
-        //                    chasedFishCount[fish.fleeingFromPlayer] += 1;
-        //                }
-        //                iterator.remove();
-        //            }
-        //        }
-
-        //        List<Fish> fishToRemove = fishes.stream().filter(
-        //            fish -> fish.getPos().getX() > WIDTH - 1 || fish.getPos().getX() < 0
-        //        ).collect(Collectors.toList());
-        //        for (iFish = 0; iFish < fishToRemove.size(); iFish++) {
-        //            Fish fish = fishes.get(iFish);
-        //            if (fish.fleeingFromPlayer != null && fish.fleeingFromPlayer != -1) {
-        //                chasedFishCount[fish.fleeingFromPlayer] += 1;
-        //            }
-        //        }
-        //        fishes.removeAll(fishToRemove);
         for (iFish = 0; iFish < fishes.size(); iFish++) {
             fishes.get(iFish).fleeingFromPlayer = null;
         }
@@ -589,310 +524,18 @@ public class Game {
     }
 
     public void performGameUpdate(int frameIdx) {
-        //        clearPlayerInfo();
-//        doBatteries();
-
-        // Update speeds
-//        updateDrones();
-
         // Move
         moveEntities();
 
         // Target
         updateUglyTargets();
 
-        // Scans
-//        doScan();
-//        doReport();
-
-        // Upkeep
-//        upkeepDrones();
 
         // Update speeds        
         updateFish();
         updateUglySpeeds();
 
-//        if (isGameOver()) {
-//            computeScoreOnEnd();
-//        }
         gameTurn++;
-    }
-
-    //    private void clearPlayerInfo() {
-    //        gamePlayers.stream().forEach(p -> p.visibleFishes.clear());
-    //
-    //    }
-
-    private void upkeepDrones() {
-        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
-            GamePlayer p = gamePlayers.get(iPlayer);
-            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
-                Drone drone = p.drones.get(iDrone);
-                if (drone.dying) {
-                    drone.dead = true;
-                    drone.dying = false;
-                } else if (drone.dead && drone.getY() == DRONE_UPPER_Y_LIMIT) {
-                    drone.dead = false;
-                }
-
-                /* stats */
-                if (drone.scans.isEmpty()) {
-                    drone.turnsSpentWithScan = 0;
-                } else {
-                    drone.turnsSpentWithScan++;
-                    if (drone.turnsSpentWithScan > drone.maxTurnsSpentWithScan) {
-                        drone.maxTurnsSpentWithScan = drone.turnsSpentWithScan;
-                    }
-                }
-                if (drone.pos.getY() > drone.maxY) {
-                    drone.maxY = (int)drone.pos.getY();
-                }
-            }
-        }
-
-    }
-
-    private void doBatteries() {
-        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
-            GamePlayer p = gamePlayers.get(iPlayer);
-            for (iDrone = 0; iDrone < p.drones.size(); iDrone++) {
-                Drone drone = p.drones.get(iDrone);
-
-                if (drone.dead) {
-                    drone.lightOn = false;
-                    continue;
-                }
-
-                if (drone.lightSwitch && drone.battery >= Game.LIGHT_BATTERY_COST && !drone.dead) {
-                    drone.lightOn = true;
-                } else {
-                    //                    if (drone.lightSwitch && !drone.dead) {
-//                        gameSummaryManager.addPlayerSummary(
-//                            gamePlayer.getNicknameToken(),
-//                            gamePlayer.getNicknameToken() + "'s drone " + drone.id + " does not have enough battery to activate light"
-//                        );
-                    //                    }
-                    drone.lightOn = false;
-                }
-
-                if (drone.isLightOn()) {
-                    drone.drainBattery();
-                } else {
-                    drone.rechargeBattery();
-                }
-            }
-        }
-
-    }
-
-    private void doScan() {
-        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
-            GamePlayer gamePlayer = gamePlayers.get(iPlayer);
-            for (iDrone = 0; iDrone < gamePlayer.drones.size(); iDrone++) {
-                Drone drone = gamePlayer.drones.get(iDrone);
-                if (drone.isDeadOrDying()) {
-                    continue;
-                }
-
-                for (iFish = 0; iFish < fishes.size(); iFish++) {
-                    Fish fish = fishes.get(iFish);
-                    if (!fish.pos.inRange(drone.pos, drone.isLightOn() ? LIGHT_SCAN_RANGE : DARK_SCAN_RANGE)) {
-                        continue;
-                    }
-                    //                    gamePlayer.visibleFishes.add(fish);
-
-                    if (drone.scans.size() < DRONE_MAX_SCANS) {
-                        Scan scan = new Scan(fish);
-                        if (!gamePlayer.scans.contains(scan)
-                            && (!drone.scans.contains(scan))) {
-                                drone.scans.add(scan);
-                            //                                drone.fishesScannedThisTurn.add(fish.id);
-
-                        }
-                    }
-                }
-                //                fishes.stream()
-                //                    .filter(fish1 -> fish1.pos.inRange(drone.pos, drone.isLightOn() ? LIGHT_SCAN_RANGE : DARK_SCAN_RANGE))
-                //                    .forEach(fish -> {
-                //                    gamePlayer.visibleFishes.add(fish);
-                //
-                //                    if (drone.scans.size() < DRONE_MAX_SCANS) {
-                //                        Scan scan = new Scan(fish);
-                //                        if (!gamePlayer.scans.contains(scan)) {
-                //                            if (!drone.scans.contains(scan)) {
-                //                                drone.scans.add(scan);
-                //                                drone.fishesScannedThisTurn.add(fish.id);
-                //                            }
-                //                        }
-                //                    }
-                //                });
-
-                //                if (SIMPLE_SCANS) {
-                //                    gamePlayer.visibleFishes.addAll(fishes);
-                //                }
-
-                //                if (drone.fishesScannedThisTurn.size() > 0) {
-                //                    String summaryScan = drone.fishesScannedThisTurn.stream().map(fishScan -> {
-                //                        return Integer.toString(fishScan);
-                //                    }).collect((Collectors.joining(",")));
-                //                    if (drone.fishesScannedThisTurn.size() == 1) {
-//                        gameSummaryManager.addPlayerSummary(
-//                            gamePlayer.getNicknameToken(),
-//                            String.format(
-//                                "%s's drone %d scans fish %d", gamePlayer.getNicknameToken(), drone.id, drone.fishesScannedThisTurn.get(0)
-//                            )
-//                        );
-                //                    } else {
-//                        gameSummaryManager.addPlayerSummary(
-//                            gamePlayer.getNicknameToken(),
-//                            String.format(
-//                                "%s's drone %d scans %d fish: %s", gamePlayer.getNicknameToken(), drone.id, drone.fishesScannedThisTurn.size(),
-//                                summaryScan
-//                            )
-//                        );
-                //                    }
-                //                }
-            }
-        }
-
-    }
-
-    private boolean applyScansForReport(GamePlayer gamePlayer, Drone drone) {
-        boolean pointsScored;
-        for (iScan = 0; iScan < drone.scans.size(); iScan++) {
-            Scan scan = drone.scans.get(iScan);
-            if (!firstToScan.containsKey(scan)) {
-                if (firstToScanTemp.containsKey(scan)) {
-                    // Opponent also completed this report this turn, nobody gets the bonus
-                    firstToScanTemp.remove(scan);
-                } else {
-                    firstToScanTemp.put(scan, gamePlayer.getIndex());
-                }
-            }
-            int fishIndex = scan.color * 3 + scan.type.ordinal();
-            turnSavedFish[gamePlayer.getIndex()][fishIndex] = gameTurn;
-            fishScanned++;
-        }
-        if (!drone.scans.isEmpty()) {
-            gamePlayer.countFishSaved.add(drone.scans.size());
-        }
-        pointsScored = gamePlayer.scans.addAll(drone.scans);
-        for (Drone other : gamePlayer.drones) {
-            if (drone != other) {
-                other.scans.removeAll(drone.scans);
-            }
-        }
-
-        drone.scans.clear();
-        return pointsScored;
-    }
-
-    private void detectFirstToComboBonuses(GamePlayer gamePlayer) {
-        for (FishType type : FishType.values()) {
-            if (!firstToScanAllFishOfType.containsKey(type)) {
-                if (playerScannedAllFishOfType(gamePlayer, type)) {
-                    if (firstToScanAllFishOfTypeTemp.containsKey(type)) {
-                        // Opponent also completed this report this turn, nobody gets the bonus
-                        firstToScanAllFishOfTypeTemp.remove(type);
-                    } else {
-                        firstToScanAllFishOfTypeTemp.put(type, gamePlayer.getIndex());
-                    }
-                }
-            }
-        }
-
-        for (int color = 0; color < COLORS_PER_FISH; ++color) {
-            if (!firstToScanAllFishOfColor.containsKey(color)) {
-                if (playerScannedAllFishOfColor(gamePlayer, color)) {
-                    if (firstToScanAllFishOfColorTemp.containsKey(color)) {
-                        // Opponent also completed this report this turn, nobody gets the bonus
-                        firstToScanAllFishOfColorTemp.remove(color);
-                    } else {
-                        firstToScanAllFishOfColorTemp.put(color, gamePlayer.getIndex());
-                    }
-
-                }
-            }
-        }
-    }
-
-    private void doReport() {
-        for (GamePlayer gamePlayer : gamePlayers) {
-            for (Drone drone : gamePlayer.drones) {
-                if (drone.isDeadOrDying()) {
-                    continue;
-                }
-                if (SIMPLE_SCANS || !drone.scans.isEmpty() && drone.pos.getY() <= DRONE_START_Y) {
-                    boolean droneScored = applyScansForReport(gamePlayer, drone);
-                    if (droneScored) {
-                        drone.didReport = true;
-                    }
-                }
-            }
-
-            detectFirstToComboBonuses(gamePlayer);
-
-        }
-
-        persistFirstToScanBonuses();
-        for (GamePlayer p : gamePlayers) {
-            p.points = computePlayerScore(p);
-        }
-    }
-
-    private void persistFirstToScanBonuses() {
-//        Map<String, List<Scan>> playerScansMap = new HashMap<String, List<Scan>>();
-
-        firstToScanTemp.forEach((k, v) -> {
-            firstToScan.putIfAbsent(k, v);
-//            String playerName = gamePlayers.get(v).getNicknameToken();
-//            playerScansMap.putIfAbsent(playerName, new ArrayList<Scan>());
-//            playerScansMap.get(playerName).add(k);
-        });
-//        playerScansMap.entrySet().forEach(playerScans -> {
-//            String summaryString = playerScans.getValue().stream().map(scan -> String.valueOf(scan.fishId))
-//                .collect(Collectors.joining(", "));
-//            if (playerScans.getValue().size() == 1) {
-//                gameSummaryManager.addPlayerSummary(
-//                    playerScans.getKey(),
-//                    String.format(
-//                        "%s was the first to save the scan of creature %s", playerScans.getKey(), summaryString
-//                    )
-//                );
-//            } else {
-//                gameSummaryManager.addPlayerSummary(
-//                    playerScans.getKey(),
-//                    String.format(
-//                        "%s was the first to save the scans of %d creatures: %s", playerScans.getKey(), playerScans.getValue().size(), summaryString
-//                    )
-//                );
-//            }
-//        });
-        firstToScanAllFishOfTypeTemp.forEach((k, v) -> {
-            firstToScanAllFishOfType.putIfAbsent(k, v);
-
-            String playerName = gamePlayers.get(v).getNicknameToken();
-            String fishSpecies = k.ordinal() + " (" + k.toString().toLowerCase() + ")";
-//            gameSummaryManager
-//                .addPlayerSummary(
-//                    playerName,
-//                    String.format("%s saved the scans of every color of %s first", playerName, fishSpecies)
-//                );
-        });
-        firstToScanAllFishOfColorTemp.forEach((k, v) -> {
-            firstToScanAllFishOfColor.putIfAbsent(k, v);
-
-            String playerName = gamePlayers.get(v).getNicknameToken();
-//            gameSummaryManager
-//                .addPlayerSummary(
-//                    playerName,
-//                    String.format("%s has saved the scans of every %d colored (%s) creature first", playerName, k, COLORS[k])
-//                );
-        });
-
-        firstToScanTemp.clear();
-        firstToScanAllFishOfColorTemp.clear();
-        firstToScanAllFishOfTypeTemp.clear();
     }
 
     private boolean playerScanned(GamePlayer gamePlayer, Fish fish) {
@@ -1065,88 +708,6 @@ public class Game {
         return true;
     }
 
-    private void computeScoreOnEnd() {
-        for (iPlayer = 0; iPlayer < 2; iPlayer++) {
-            GamePlayer gamePlayer = gamePlayers.get(iPlayer);
-            for (iDrone = 0; iDrone < gamePlayer.drones.size(); iDrone++) {
-                Drone drone = gamePlayer.drones.get(iDrone);
-                applyScansForReport(gamePlayer, drone);
-            }
-            detectFirstToComboBonuses(gamePlayer);
-        }
-
-        persistFirstToScanBonuses();
-
-        gamePlayers.stream().forEach(p -> {
-            if (p.isActive()) {
-                int score = computePlayerScore(p);
-                p.setScore(score);
-                p.points = score;
-            } else {
-                p.setScore(-1);
-            }
-        });
-    }
-
-    public void onEnd() {
-        gamePlayers.stream().forEach(p -> {
-            if (p.isActive()) {
-                int score = computePlayerScore(p);
-                p.setScore(score);
-                p.points = score;
-            } else {
-                p.setScore(-1);
-            }
-        });
-//        endScreenModule.setScores(
-//            gamePlayers.stream()
-//                .mapToInt(p -> p.getScore())
-//                .toArray()
-//        );
-
-        for (GamePlayer p : gamePlayers) {
-            for (Drone d : p.drones) {
-                maxTurnsSpentWithScan[p.getIndex()] = Math.max(maxTurnsSpentWithScan[p.getIndex()], d.maxTurnsSpentWithScan);
-                maxY[p.getIndex()] = Math.max(maxY[p.getIndex()], d.maxY);
-            }
-
-            int idx = 0;
-            for (Integer saveCount : p.countFishSaved) {
-//                gameManager.putMetadata("fishSavedPerSave_" + p.getIndex() + "_" + idx, String.valueOf(saveCount));
-                idx++;
-            }
-            idx = 0;
-            for (Integer turn : turnSavedFish[p.getIndex()]) {
-//                gameManager.putMetadata("turnFishWasSaved_" + p.getIndex() + "_" + idx, String.valueOf(turn));
-                idx++;
-            }
-        }
-//        gameManager.putMetadata("fishScanned", String.valueOf(fishScanned));
-//        gameManager.putMetadata("dronesEaten", String.valueOf(dronesEaten));
-//        gameManager.putMetadata("timesAggroed_0", String.valueOf(timesAggroed[0]));
-//        gameManager.putMetadata("timesAggroed_1", String.valueOf(timesAggroed[1]));
-//        gameManager.putMetadata("chasedFishCount_0", String.valueOf(chasedFishCount[0]));
-//        gameManager.putMetadata("chasedFishCount_1", String.valueOf(chasedFishCount[1]));
-//        gameManager.putMetadata("maxTurnsSpentWithScan_0", String.valueOf(maxTurnsSpentWithScan[0]));
-//        gameManager.putMetadata("maxTurnsSpentWithScan_1", String.valueOf(maxTurnsSpentWithScan[1]));
-//        gameManager.putMetadata("maxY_0", String.valueOf(maxY[0]));
-//        gameManager.putMetadata("maxY_1", String.valueOf(maxY[1]));
-
-//        gameManager.putMetadata("gameLength", String.valueOf(gameTurn - 1));
-    }
-
-    public static String getExpected(String playerOutput) {
-        String attempt = playerOutput.toUpperCase();
-        if (attempt.startsWith("MOVE")) {
-            return "MOVE <x> <y> <light (1|0)>";
-        }
-        if (attempt.startsWith("WAIT")) {
-            return "WAIT <light (1|0)>";
-        }
-        return "MOVE |"
-            + " WAIT";
-    }
-
     /**
      * Credit for this collision code goes to the creators of <a href="https://www.codingame.com/contests/mean-max">Mean Max</a>
      */
@@ -1207,17 +768,6 @@ public class Game {
         return new Collision(t, ugly, drone);
     }
 
-    public boolean hasFirstToScanBonus(GamePlayer gamePlayer, Scan scan) {
-        return firstToScan.getOrDefault(scan, -1).equals(gamePlayer.getIndex());
-    }
-
-    public boolean hasFirstToScanAllFishOfType(GamePlayer gamePlayer, FishType type) {
-        return firstToScanAllFishOfType.getOrDefault(type, -1).equals(gamePlayer.getIndex());
-    }
-
-    public boolean hasFirstToScanAllFishOfColor(GamePlayer gamePlayer, int col) {
-        return firstToScanAllFishOfColor.getOrDefault(col, -1).equals(gamePlayer.getIndex());
-    }
 
     public Vector getMeanPos(List<? extends Entity> list) {
         if (list.size() == 1) {

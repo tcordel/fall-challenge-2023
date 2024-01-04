@@ -33,11 +33,6 @@ public class GamePlayer extends AbstractMultiplayerPlayer {
 		setIIndex(index);
 	}
 
-	@Override
-	public int getExpectedOutputLines() {
-		return drones.size();
-	}
-
 	public String getMessage() {
 		return message;
 	}

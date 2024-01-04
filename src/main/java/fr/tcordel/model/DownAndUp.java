@@ -261,7 +261,18 @@ public class DownAndUp extends AbstractStrat {
 				return i > 0;
 		}
 		System.err.println("No escape found for drone " + drone.id + ", " + drone.pos + "@" + vector);
-		drone.move = drone.pos.add(vector);
+		Optional<Ugly> min = game.uglies
+			.stream()
+			.filter(ugly -> ugly.pos != null)
+			.min(Comparator.comparingDouble(u -> u.pos.manhattanTo(drone.pos)));
+		if (min.isPresent()) {
+			Ugly ugly = min.get();
+			Vector normalize = ugly.speed.normalize().mult(Game.DRONE_MOVE_SPEED).round();
+			System.err.println("Trying to resolve conflict generating an opposite direction " + normalize);
+			drone.move = drone.pos.add(normalize);
+		} else {
+			drone.move = drone.pos.add(vector);
+		}
 		return true;
 	}
 

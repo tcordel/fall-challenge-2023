@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class DownAndUp extends AbstractStrat {
@@ -16,7 +17,7 @@ public class DownAndUp extends AbstractStrat {
 
 
 	public static final boolean FOE_WINNNING_COUNTER_ATTACK_STRAT = true;
-	public static final boolean FOE_WINNNING_COMMIT_STRAT = false;
+	public static final boolean FOE_WINNNING_COMMIT_STRAT = true;
 	public static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = true;
 
 	private final GameEstimator gameEstimator = new GameEstimator();
@@ -131,17 +132,13 @@ public class DownAndUp extends AbstractStrat {
 				firstWinningIndex = GamePlayer.FOE;
 			}
 		}
-		if (isWinning(GamePlayer.ME)) {
+		if (isWinning(GamePlayer.ME) && iWillCommitFirst) {
 			System.err.println("COMMIT !!");
 			commitCalled = true;
 			commit[0] = true;
 			commit[1] = true;
 		}
-		//		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
-		//			System.err.println("Loosing, so attacking whatever i can");
-		//			game.gamePlayers.get(GamePlayer.ME).drones
-		//				.forEach(drone -> drone.strat = Strat.ATTACK);
-		//		}
+
 		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
 			System.err.println("OPP can win :(");
 			Map<Integer, List<Drone>> list = game.gamePlayers
@@ -179,6 +176,12 @@ public class DownAndUp extends AbstractStrat {
 			}
 		}
 
+		if (!commitCalled && FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
+			System.err.println("Loosing, so attacking whatever i can");
+			game.gamePlayers.get(GamePlayer.ME).drones
+				.forEach(drone -> drone.strat = Strat.ATTACK);
+		}
+
 		// Si je commit avant l'autre :
 		// point bonus  moi
 		// estimer la perte potentiel de point bonus (premier + combo) pour l'advesaire.
@@ -210,7 +213,7 @@ public class DownAndUp extends AbstractStrat {
 		});
 		if (
 //			!escaping&&
-			drone.getY() >= FishType.JELLY.getUpperLimit()
+			drone.move.getY() >= FishType.JELLY.getUpperLimit()
 			&& (!batterieToogle[i] || (drone.getY() > 6200))
 			&& (isInRange(drone, radar.getTypes(game.fishesMap)) || (target == FishType.CRAB && (drone.getY() > 6200)))
 			&& needLight
@@ -281,15 +284,6 @@ public class DownAndUp extends AbstractStrat {
 		Radar radarForType;
 		FishType target = null;
 
-//		Optional<Fish> fishToAttack = drone.scans.stream()
-//			.filter(scan ->  game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
-//			.map(scan -> game.fishesMap.get(scan.fishId))
-//			.filter(f -> !f.escaped)
-//			.filter(fish -> isLeft ? (fish.getX() < Game.FISH_FLEE_SPEED * 2) : (fish.getX() > (Game.WIDTH - Game.FISH_FLEE_SPEED * 2)))
-//			.filter(fish -> fish.pos.euclideanTo(drone.pos) < (Game.FISH_HEARING_RANGE + Game.DRONE_MOVE_SPEED))
-//			.filter(fish -> game.gamePlayers.get(GamePlayer.FOE).drones.stream()
-//				.allMatch(opp -> fish.pos.euclideanTo(opp.pos) > (Game.LIGHT_SCAN_RANGE + Game.DRONE_MOVE_SPEED - Game.FISH_FLEE_SPEED)))
-//			.findFirst();
 //
 //		if (fishToAttack.isPresent()) {
 //			direction = applyAttackStrat(drone, isLeft);
@@ -339,6 +333,27 @@ public class DownAndUp extends AbstractStrat {
 		}
 
 		targets[i] = target;
+
+		RadarDirection finalRd = rd;
+		Predicate<Fish> sameDirection = f -> switch (finalRd) {
+			case BL, BR ->f.pos.getY() >= drone.pos.getY();
+			case TL, TR ->f.pos.getY() <= drone.pos.getY();
+		};
+		Optional<Fish> fishToAttack = drone.scans.stream()
+			.filter(scan ->  game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
+			.map(scan -> game.fishesMap.get(scan.fishId))
+			.filter(f -> !f.escaped)
+			.filter(fish -> isLeft ? (fish.getX() < Game.FISH_FLEE_SPEED * 2) : (fish.getX() > (Game.WIDTH - Game.FISH_FLEE_SPEED * 2)))
+			.filter(fish -> fish.pos.euclideanTo(drone.pos) < (Game.FISH_HEARING_RANGE + Game.DRONE_MOVE_SPEED))
+			.filter(fish -> game.gamePlayers.get(GamePlayer.FOE).drones.stream()
+				.allMatch(opp -> fish.pos.euclideanTo(opp.pos) > (Game.LIGHT_SCAN_RANGE + Game.DRONE_MOVE_SPEED - Game.FISH_FLEE_SPEED)))
+			.filter(sameDirection)
+			.findFirst();
+
+		if (fishToAttack.isPresent()) {
+			System.err.printf("Drone %d may attack %d", drone.id, fishToAttack.get().id);
+			return attackFish.process(fishToAttack.get(), drone);
+		}
 		int threshold = game.getMoveSpeed(drone) / 2;
 		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
 			System.err.println(drone.getId() + " depth too far from target type " + target + "... " + drone.getY() + "," + threshold);

@@ -205,7 +205,7 @@ public class DownAndUp extends AbstractStrat {
 		boolean lightOn = false;
 		game.updateDrone(drone);
 		boolean needLight = game.uglies.stream().anyMatch(ugly -> ugly.pos == null)
-			|| game.fishes.stream().anyMatch(ugly -> ugly.pos == null)
+			|| game.fishes.stream().anyMatch(fish -> fish.pos == null)
 			|| game.fishes.stream().anyMatch(fish -> {
 			Scan scan = new Scan(fish);
 			if (drone.scans.contains(scan) || game.gamePlayers.get(GamePlayer.ME).scans.contains(scan)) {
@@ -218,7 +218,7 @@ public class DownAndUp extends AbstractStrat {
 		if (
 //			!escaping&&
 			drone.getY() >= FishType.JELLY.getUpperLimit()
-			&& (!batterieToogle[i] || (drone.move.getY() > 6700 && drone.battery > 10))
+			&& (!batterieToogle[i] || (drone.getY() > 6200))
 			&& isInRange(drone, radar.getTypes(game.fishesMap))
 			&& needLight
 		) {

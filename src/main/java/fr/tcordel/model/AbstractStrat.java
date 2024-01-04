@@ -36,14 +36,16 @@ public abstract class AbstractStrat {
 
 	protected Vector filterDirection(Drone drone, Vector vector, Vector direction, int xLimit, int yLimit) {
 		double toXborder = Math.min(vector.getX(), Math.abs(vector.getX() - Game.WIDTH));
-		if (toXborder < xLimit) {
+		double currentToXBorder = Math.min(drone.getX(), Math.abs(drone.getX() - Game.WIDTH));
+		if ((toXborder < currentToXBorder) && (toXborder < xLimit)) {
 			System.err.println("Reset X for drone " + drone.getId());
 			direction =  new Vector(0, direction.getY());
 		}
 
 		vector = drone.pos.add(direction);
 		double toYborder = Game.HEIGHT - vector.getY();
-		if (toYborder < yLimit) {
+		double currentToYBorder = Game.HEIGHT - drone.getY();
+		if ((toYborder < currentToYBorder) && (toYborder < yLimit)) {
 			System.err.println("Reset Y for drone " + drone.getId() + " v" + vector+ ", " + yLimit);
 			direction =  new Vector(direction.getX(), 0);
 		}

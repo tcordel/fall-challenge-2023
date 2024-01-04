@@ -12,6 +12,8 @@ public class Fish implements Entity {
     /* stats */
     Integer fleeingFromPlayer;
 
+    boolean escaped = false;
+
     public Fish(int id, int color, FishType type) {
         this.type = type;
         this.color = color;

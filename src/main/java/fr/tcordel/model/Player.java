@@ -68,6 +68,7 @@ public class Player {
 		GamePlayer foe = new GamePlayer();
 		foe.setIIndex(GamePlayer.FOE);
 		game.gamePlayers = List.of(me, foe);
+		Set<Integer> allIds = new HashSet<>();
 		// game loop
 		while (true) {
 			int myScore = in.nextInt();
@@ -211,13 +212,16 @@ public class Player {
 				}
 			}
 			int radarBlipCount = in.nextInt();
+
 			ALL_AVAILABLE_SCANS.clear();
+			allIds.clear();
 			for (int i = 0; i < radarBlipCount; i++) {
 				int droneId = in.nextInt();
 				int creatureId = in.nextInt();
 				String radar = in.next();
 //				System.err.println(droneId + " -> " + creatureId + " @ " + radar);
 				RadarDirection radarDirection = RadarDirection.valueOf(radar);
+				allIds.add(creatureId);
 				if (game.fishesMap.containsKey(creatureId)) {
 					ALL_AVAILABLE_SCANS.add(new Scan(game.fishesMap.get(creatureId)));
 				}
@@ -226,6 +230,8 @@ public class Player {
 				}
 				game.dronesMap.get(droneId).getRadar().put(creatureId, radarDirection);
 			}
+
+			game.fishesMap.values().forEach(f -> f.escaped = !allIds.contains(f.id));
 
 			downAndUp.process(radars, scans);
 			FIRST_ROUND = false;

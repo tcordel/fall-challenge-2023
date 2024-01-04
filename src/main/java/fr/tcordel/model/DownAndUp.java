@@ -289,8 +289,9 @@ public class DownAndUp extends AbstractStrat {
 		FishType target = null;
 
 //		Optional<Fish> fishToAttack = drone.scans.stream()
-//			.filter(scan -> game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
+//			.filter(scan ->  game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
 //			.map(scan -> game.fishesMap.get(scan.fishId))
+//			.filter(f -> !f.escaped)
 //			.filter(fish -> isLeft ? (fish.getX() < Game.FISH_FLEE_SPEED * 2) : (fish.getX() > (Game.WIDTH - Game.FISH_FLEE_SPEED * 2)))
 //			.filter(fish -> fish.pos.euclideanTo(drone.pos) < (Game.FISH_HEARING_RANGE + Game.DRONE_MOVE_SPEED))
 //			.filter(fish -> game.gamePlayers.get(GamePlayer.FOE).drones.stream()
@@ -347,7 +348,7 @@ public class DownAndUp extends AbstractStrat {
 		targets[i] = target;
 		int threshold = game.getMoveSpeed(drone) / 2;
 		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
-			System.err.println(drone.getId() + " depth too far from target type " + target);
+			System.err.println(drone.getId() + " depth too far from target type " + target + "... " + drone.getY() + "," + threshold);
 			return switch (rd) {
 				case BL -> drone.getX() > Game.FISH_HEARING_RANGE ? DOWN_LEFT : DOWN;
 				case BR -> drone.getX() < (Game.WIDTH - Game.FISH_HEARING_RANGE) ? DOWN_RIGHT : DOWN;

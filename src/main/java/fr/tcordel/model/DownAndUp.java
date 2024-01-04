@@ -95,9 +95,8 @@ public class DownAndUp extends AbstractStrat {
 			.get(GamePlayer.FOE)
 			.drones
 			.stream()
-//			.peek(drone -> System.err.println("Speed " + drone.id + " -> " + drone.speed))
-			.map(d -> d.speed)
-			.allMatch(s -> s.equals(Vector.UP));
+			.peek(drone -> System.err.println("Speed " + drone.id + " -> " + drone.isCommitting()))
+			.allMatch(Drone::isCommitting);
 
 		gameEstimator.reset();
 		gameEstimator2.reset();
@@ -115,6 +114,7 @@ public class DownAndUp extends AbstractStrat {
 //		gameEstimator2.computeScanScore(scans, game.gamePlayers.get(GamePlayer.ME).getIndex());
 		int myScoreCommittingFirst2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 		int oppMaxScore2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+
 		System.err.println("Committing me:%d, him %d".formatted(myCommitPoint, himCommintPoint));
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
@@ -204,9 +204,10 @@ public class DownAndUp extends AbstractStrat {
 	private int switchOn(int i, Drone drone, Radar radar, FishType target, boolean escaping) {
 		boolean lightOn = false;
 		game.updateDrone(drone);
-		boolean needLight = game.uglies.stream().anyMatch(ugly -> ugly.pos == null)
-			|| game.fishes.stream().anyMatch(fish -> fish.pos == null)
-			|| game.fishes.stream().anyMatch(fish -> {
+		boolean isUnknownUgly = game.uglies.stream().anyMatch(ugly -> ugly.pos == null);
+		boolean needLight = isUnknownUgly
+							|| game.fishes.stream().anyMatch(fish -> fish.pos == null)
+							|| game.fishes.stream().anyMatch(fish -> {
 			Scan scan = new Scan(fish);
 			if (drone.scans.contains(scan) || game.gamePlayers.get(GamePlayer.ME).scans.contains(scan)) {
 					return false;
@@ -219,7 +220,7 @@ public class DownAndUp extends AbstractStrat {
 //			!escaping&&
 			drone.getY() >= FishType.JELLY.getUpperLimit()
 			&& (!batterieToogle[i] || (drone.getY() > 6200))
-			&& isInRange(drone, radar.getTypes(game.fishesMap))
+			&& (isInRange(drone, radar.getTypes(game.fishesMap)) || (target == FishType.CRAB && (drone.getY() > 6200)))
 			&& needLight
 		) {
 			lightOn = true;

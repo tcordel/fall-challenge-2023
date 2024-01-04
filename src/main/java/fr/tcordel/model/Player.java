@@ -244,6 +244,7 @@ public class Player {
 		Vector lastPos = drone.pos;
 		drone.pos = new Vector(droneX, droneY);
 		if (!FIRST_ROUND) {
+			drone.lastSpeed = drone.speed;
 			drone.speed = new Vector(lastPos, drone.pos);
 		}
 		drone.dead = emergency == 1;

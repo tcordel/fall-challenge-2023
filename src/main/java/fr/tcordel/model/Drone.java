@@ -10,6 +10,7 @@ public class Drone implements Entity {
     Vector pos;
     Vector move;
     Vector speed;
+    Vector lastSpeed;
 
     int light;
     int battery;
@@ -132,5 +133,14 @@ public class Drone implements Entity {
 
     public List<Scan> getScans() {
         return scans;
+    }
+
+    public boolean isCommitting() {
+        if (lastSpeed == null || speed == null) {
+            return false;
+        }
+        int threshold = -(Game.DRONE_MOVE_SPEED - 50);
+        return /*lastSpeed.getY() <= threshold &&*/
+               speed.getY() <= threshold;
     }
 }

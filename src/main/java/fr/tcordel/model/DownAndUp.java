@@ -269,6 +269,7 @@ public class DownAndUp extends AbstractStrat {
 	}
 
 	private void preAllocate(Map<Integer, Radar> radars) {
+
 		game.gamePlayers.get(GamePlayer.ME).drones
 			.forEach(d -> allocations.put(d.id, new HashSet<>()));
 
@@ -279,6 +280,7 @@ public class DownAndUp extends AbstractStrat {
 		boolean splitVert = Math.abs(drone1.getY() - drone0.getY()) >= 1000;
 		boolean drone0isLeft = drone1.getX() > drone0.getX();
 		boolean drone0isUp = drone1.getY() > drone0.getY();
+
 
 		Radar drone0radar = radars.get(drone0.id);
 		Radar drone1radar = radars.get(drone1.id);

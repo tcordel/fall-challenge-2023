@@ -14,6 +14,8 @@ public class Fish implements Entity {
 
     boolean escaped = false;
 
+    public RadarZone radarZone;
+
     public Fish(int id, int color, FishType type) {
         this.type = type;
         this.color = color;

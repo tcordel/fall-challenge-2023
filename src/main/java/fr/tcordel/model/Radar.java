@@ -2,6 +2,7 @@ package fr.tcordel.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 
 public class Radar {
 
+	public Map<Integer, RadarDirection> bearings = new HashMap<>();
 	public List<Integer> topLeft = new ArrayList<>();
 	public List<Integer> topRight = new ArrayList<>();
 	public List<Integer> bottomRight = new ArrayList<>();
@@ -27,6 +29,7 @@ public class Radar {
 	}
 
 	public void reset() {
+		bearings.clear();
 		topLeft.clear();
 		topRight.clear();
 		bottomRight.clear();
@@ -34,12 +37,17 @@ public class Radar {
 	}
 
 	public void populate(int creatureId, RadarDirection radar) {
+		bearings.put(creatureId, radar);
 		switch (radar) {
 			case TL -> topLeft.add(creatureId);
 			case TR -> topRight.add(creatureId);
 			case BR -> bottomRight.add(creatureId);
 			case BL -> bottomLeft.add(creatureId);
 		}
+	}
+
+	public RadarDirection forFish(int creatureId) {
+		return bearings.get(creatureId);
 	}
 
 	public Radar forType(Map<Integer, Fish> fishes, FishType type) {

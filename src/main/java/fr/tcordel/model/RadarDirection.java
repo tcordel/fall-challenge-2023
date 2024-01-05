@@ -18,4 +18,13 @@ public enum RadarDirection {
 	public Vector getDirection() {
 		return direction;
 	}
+
+	public RadarDirection hsymettric() {
+		return switch (this) {
+			case BL -> BR;
+			case BR -> BL;
+			case TL -> TR;
+			case TR -> TL;
+		};
+	}
 }

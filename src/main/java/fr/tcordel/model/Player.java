@@ -10,6 +10,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Player {
 
@@ -222,6 +223,88 @@ public class Player {
 					radars.get(droneId).populate(creatureId, radarDirection);
 				}
 				game.dronesMap.get(droneId).getRadar().put(creatureId, radarDirection);
+			}
+
+			if (Player.FIRST_ROUND) {
+				Drone drone0 = game.gamePlayers.get(GamePlayer.ME).drones.get(0);
+				Drone drone1 = game.gamePlayers.get(GamePlayer.ME).drones.get(1);
+				boolean drone0isLeft = drone1.getX() > drone0.getX();
+
+				Drone droneLeft = drone0isLeft ? drone0 : drone1;
+				Drone droneRight = !drone0isLeft ? drone0 : drone1;
+				boolean droneLeftExternal = droneLeft.pos.getX() < 3000;
+				droneLeft.initialPosition = droneLeftExternal ? DroneInitialPosition.EXTERNAL : DroneInitialPosition.INNER;
+				droneRight.initialPosition = !droneLeftExternal ? DroneInitialPosition.EXTERNAL : DroneInitialPosition.INNER;
+
+				Radar radarDroneLeft = radars.get(droneLeft.id);
+				Radar radarDroneRight = radars.get(droneRight.id);
+
+//				System.err.println("Analyzing map");
+				for (int i = 4; i <= 14; i = i+2) {
+					int currId = i;
+					int oppId = i + 1;
+					Fish fish = game.fishesMap.get(i);
+					Fish oppfish = game.fishesMap.get(oppId);
+//					System.err.printf("%nDuo %d - %d, c %d, t %s%n", i, oppId,fish.color, fish.getType());
+
+					RadarDirection leftToCurDir = radarDroneLeft.forFish(currId);
+					RadarDirection rightToOppDir = radarDroneRight.forFish(oppId);
+					RadarDirection leftToOppDir = radarDroneLeft.forFish(oppId);
+					RadarDirection rightToCurDir = radarDroneRight.forFish(currId);
+
+//					System.err.printf("Trying to estimate %d zone%n", currId);
+
+					RadarDirection leftFoeToCurDir = rightToOppDir.hsymettric();
+					RadarDirection rightFoeToCurDir = leftToOppDir.hsymettric();
+
+					List<RadarDirection> directions = List.of(leftToCurDir, leftFoeToCurDir, rightToCurDir, rightFoeToCurDir);
+					RadarZone rz;
+					if (directions.stream().distinct().count() == 1) {
+						rz = RadarZone.EXTERNAL;
+
+						if (leftToCurDir == RadarDirection.BR) {
+							droneRight.allocations.add(fish);
+							droneLeft.allocations.add(oppfish);
+						} else {
+							droneLeft.allocations.add(fish);
+							droneRight.allocations.add(oppfish);
+						}
+					} else if ((directions.stream().filter(d -> d == RadarDirection.BR).count() %2) == 1) {
+						rz = RadarZone.CENTRAL;
+						if (droneLeft.initialPosition == DroneInitialPosition.EXTERNAL) {
+							boolean alone = Stream.of(leftFoeToCurDir, rightToCurDir, rightFoeToCurDir).noneMatch(a -> a == leftToCurDir);
+//							System.err.println("DroneLeft seet it at " + leftToCurDir + "alone ? " + alone);
+							if (alone) {
+								droneLeft.allocations.add(fish);
+								droneRight.allocations.add(oppfish);
+							} else {
+								droneRight.allocations.add(fish);
+								droneLeft.allocations.add(oppfish);
+							}
+						} else {
+							boolean alone = Stream.of(leftFoeToCurDir, leftToCurDir, rightFoeToCurDir).noneMatch(a -> a == rightToCurDir);
+//							System.err.println("DroneRight seet it at " + rightToCurDir + "alone ? " + alone);
+							if (alone) {
+								droneRight.allocations.add(fish);
+								droneLeft.allocations.add(oppfish);
+							} else {
+								droneLeft.allocations.add(fish);
+								droneRight.allocations.add(oppfish);
+							}
+						}
+
+					} else {
+						rz = RadarZone.INNER;
+						// Arbitrary allocation
+						droneLeft.allocations.add(fish);
+						droneRight.allocations.add(oppfish);
+					}
+					fish.radarZone = rz;
+					oppfish.radarZone = rz;
+				}
+
+//				System.err.println("Drone left " + droneLeft.id + " has fish " + droneLeft.allocations.stream().map(Fish::getId).map(String::valueOf).collect(Collectors.joining(",")));
+//				System.err.println("Drone left " + droneRight.id + " has fish " + droneRight.allocations.stream().map(Fish::getId).map(String::valueOf).collect(Collectors.joining(",")));
 			}
 
 			game.fishesMap.values().forEach(f -> f.escaped = !allIds.contains(f.id));

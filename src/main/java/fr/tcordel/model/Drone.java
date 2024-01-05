@@ -28,6 +28,11 @@ public class Drone implements Entity {
 
     public Fish target;
 
+    public DroneInitialPosition initialPosition = null;
+
+
+    public List<Fish> allocations = new ArrayList<>();
+
     Map<Integer, RadarDirection> radar = new HashMap<>();
 
     Strat strat = Strat.DOWN;

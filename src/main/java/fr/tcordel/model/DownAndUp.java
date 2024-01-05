@@ -432,7 +432,7 @@ public class DownAndUp extends AbstractStrat {
 			return direction;
 		}
 		Vector vector = drone.pos.add(direction);
-		drone.move = vector;
+		drone.move = game.snapToDroneZone(vector);
 		game.updateDrone(drone);
 		boolean processFilter = game.uglies
 									.stream()

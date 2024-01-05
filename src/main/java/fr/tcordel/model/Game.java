@@ -782,6 +782,20 @@ public class Game {
         return new Collision(t, ugly, drone);
     }
 
+    Vector snapToDroneZone(Vector pos) {
+        if (pos.getY() > HEIGHT - 1) {
+            pos = new Vector(pos.getX(), HEIGHT - 1);
+        } else if (pos.getY() < DRONE_UPPER_Y_LIMIT) {
+            pos = new Vector(pos.getX(), DRONE_UPPER_Y_LIMIT);
+        }
+        if (pos.getX() < 0) {
+            pos = new Vector(0, pos.getY());
+        } else if (pos.getX() >= WIDTH) {
+            pos = new Vector(WIDTH - 1, pos.getY());
+        }
+        return pos;
+    }
+
 
     public Vector getMeanPos(List<? extends Entity> list) {
         if (list.size() == 1) {

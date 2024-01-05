@@ -16,7 +16,8 @@ public abstract class AbstractStrat {
 
 	boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone, double offset) {
 		if (moveDrone) {
-			drone.move = drone.pos.add(vector.rotate(i * _1DegToRadians)).round();
+			drone.move = game.snapToDroneZone(drone.pos.add(vector.rotate(i * _1DegToRadians)).round());
+
 			game.updateDrone(drone);
 		}
 		if (game.uglies

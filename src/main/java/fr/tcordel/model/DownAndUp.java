@@ -123,7 +123,7 @@ public class DownAndUp extends AbstractStrat {
 										   .map(d -> d.pos)
 										   .mapToDouble(Vector::getX)
 										   .min().orElse(Double.MAX_VALUE));
-		boolean iWin = myScoreCommittingFirst > oppMaxScore;
+		boolean iWin = myCommitPoint > oppMaxScore;
 		boolean foeWins = oppMaxScore2 > myScoreCommittingFirst2;
 		if (firstWinningIndex == null) {
 			if (iWin) {

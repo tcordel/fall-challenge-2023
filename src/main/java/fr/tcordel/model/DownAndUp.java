@@ -144,7 +144,7 @@ public class DownAndUp extends AbstractStrat {
 //										   .map(d -> d.pos)
 //										   .mapToDouble(Vector::getX)
 //										   .min().orElse(Double.MAX_VALUE));
-		iWin = myCommitPoint > oppMaxScore;
+		iWin = myScoreCommittingFirst > oppMaxScore;
 		foeWins = oppMaxScore2 > myScoreCommittingFirst2;
 //		if (firstWinningIndex == null) {
 //			if (iWin) {
@@ -248,8 +248,8 @@ public class DownAndUp extends AbstractStrat {
 			if (
 				//			!escaping&&
 				drone.move.getY() >= FishType.JELLY.getUpperLimit()
-				&& (!batterieToogle[i] || (drone.getY() > 6200))
-				&& (isInRange(drone, radar.getTypes(game.fishesMap)) || (target == FishType.CRAB && (drone.getY() > 6200)))
+				&& (!batterieToogle[i] || (drone.getY() > 6500))
+				&& (isInRange(drone, radar.getTypes(game.fishesMap)) || (target == FishType.CRAB && (drone.getY() > 6500)))
 				&& needLight
 			) {
 				lightOn = true;
@@ -466,7 +466,7 @@ public class DownAndUp extends AbstractStrat {
 		//			}
 		//		}
 		//		RadarDirection rd = goToCenter ? RadarDirection.BR : RadarDirection.BL;
-		direction = getFilteredVector(drone, rd.getDirection(), 1000, 500);
+		direction = getFilteredVector(drone, rd.getDirection(), 1000, 400);
 
 		return direction;
 	}

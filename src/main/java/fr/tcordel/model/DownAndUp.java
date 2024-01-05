@@ -339,8 +339,8 @@ public class DownAndUp extends AbstractStrat {
 		}
 
 		if (rd == null) {
-			if (drone.scans.isEmpty() && (ATTACK_RESSOURCE_ON_NO_ALLOCATION
-				|| (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)))) {
+			if ( (drone.scans.isEmpty() && ATTACK_RESSOURCE_ON_NO_ALLOCATION)
+				|| (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE))) {
 				direction = applyAttackStrat(drone, isLeft);
 				if (direction != null) {
 					return direction;

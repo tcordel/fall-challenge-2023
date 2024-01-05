@@ -6,8 +6,10 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -31,29 +33,31 @@ public class DownAndUp extends AbstractStrat {
 	}
 
 	boolean[] batterieToogle = new boolean[2];
-	boolean[] commit = new boolean[2];
 	boolean commitCalled = false;
 	boolean hasCommitted = false;
 
-	Integer firstWinningIndex = null;
+//	Integer firstWinningIndex = null;
+
+	boolean iWin = false;
+	boolean foeWins = false;
 	List<Set<Integer>> allocations = List.of(new HashSet<>(), new HashSet<>());
 	public void process(Radar[] radars, Set<Integer> scans) {
-		if (!commitCalled) {
 		checkWinningState();
-		}
 		preAllocate(radars);
 		resetCaches();
 		Arrays.fill(targets, null);
 		for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
 			Drone drone = game.gamePlayers.get(GamePlayer.ME).drones.get(i);
-			commit[i] = commit[i] && drone.getY() > Game.DRONE_START_Y;
-			Vector vector = commit[i] ? UP : getVector(radars, scans, i, drone);
+			if (drone.strat == Strat.UP && drone.getY() <= Game.DRONE_START_Y) {
+				drone.strat = Strat.DOWN;
+			}
+			Vector vector = drone.strat == Strat.UP ? UP : getVector(radars, scans, i, drone);
 			boolean escaping = checkCollision(drone, vector);
 			System.out.printf(
 				"MOVE %d %d %d %s%s%n", (int)drone.move.getX(),
 				(int)drone.move.getY(),
 				switchOn(i, drone, radars[i], targets[i], escaping),
-				(commit[i] ? "🏆" : "🤑"),
+				(drone.strat == Strat.UP ? "🏆" : "🤑"),
 				escaping ? "🥵" : "🤗"
 								);
 		}
@@ -84,6 +88,15 @@ public class DownAndUp extends AbstractStrat {
 			return;
 		}
 
+		// Si je commit avant l'autre :
+		// point bonus  moi
+		// estimer la perte potentiel de point bonus (premier + combo) pour l'advesaire.
+
+		// --> le reste ne permet pas de rattraper les données commit + bonus + le reste à récupérer.
+
+		// mon score commit premier + reste potentiel second > reste potentiel premier pour l'autre.
+
+
 		boolean foeCommitting = game.gamePlayers
 			.get(GamePlayer.FOE)
 			.drones
@@ -112,50 +125,63 @@ public class DownAndUp extends AbstractStrat {
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
 
-		boolean iWillCommitFirst = !foeCommitting ||
-								   game.gamePlayers
-									   .get(GamePlayer.ME)
-									   .drones.stream()
-									   .map(d -> d.pos)
-									   .anyMatch(p -> p.getX() <= (Game.DRONE_MOVE_SPEED / 2) + game.gamePlayers
-										   .get(GamePlayer.FOE)
-										   .drones.stream()
-										   .map(d -> d.pos)
-										   .mapToDouble(Vector::getX)
-										   .min().orElse(Double.MAX_VALUE));
-		boolean iWin = myCommitPoint > oppMaxScore;
-		boolean foeWins = oppMaxScore2 > myScoreCommittingFirst2;
-		if (firstWinningIndex == null) {
-			if (iWin) {
-				firstWinningIndex = GamePlayer.ME;
-			} else if (foeWins) {
-				firstWinningIndex = GamePlayer.FOE;
-			}
-		}
-		if (isWinning(GamePlayer.ME) && iWillCommitFirst) {
-			System.err.println("COMMIT !!");
-			commitCalled = true;
-			commit[0] = true;
-			commit[1] = true;
-		}
-
-		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
-			System.err.println("OPP can win :(");
-			Map<Integer, List<Drone>> list = game.gamePlayers
-				.stream()
-				.flatMap(g -> g.drones.stream())
-				.collect(Collectors.toMap(a -> (int)(a.getY() / Game.DRONE_MOVE_SPEED), drone -> {
+		Map<Integer, List<Drone>> list = game.gamePlayers
+			.stream()
+			.flatMap(g -> g.drones.stream())
+			.collect(Collectors.toMap(a -> (int) Math.ceil((a.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED), drone -> {
 					List<Drone> arrayList = new ArrayList<>();
 					arrayList.add(drone);
 					return arrayList;
 				}, (a, b) -> {
 					a.addAll(b);
 					return a;
-				}));
+				},
+				TreeMap::new));
 
+
+
+//		boolean iWillCommitFirst = !foeCommitting ||
+//								   game.gamePlayers
+//									   .get(GamePlayer.ME)
+//									   .drones.stream()
+//									   .map(d -> d.pos)
+//									   .anyMatch(p -> p.getX() <= (Game.DRONE_MOVE_SPEED / 2) + game.gamePlayers
+//										   .get(GamePlayer.FOE)
+//										   .drones.stream()
+//										   .map(d -> d.pos)
+//										   .mapToDouble(Vector::getX)
+//										   .min().orElse(Double.MAX_VALUE));
+		iWin = myCommitPoint > oppMaxScore;
+		foeWins = oppMaxScore2 > myScoreCommittingFirst2;
+//		if (firstWinningIndex == null) {
+//			if (iWin) {
+//				firstWinningIndex = GamePlayer.ME;
+//			} else if (foeWins) {
+//				firstWinningIndex = GamePlayer.FOE;
+//			}
+//		}
+		if (isWinning(GamePlayer.ME)) {
+			System.err.println("I can win !!");
+			game.gamePlayers.get(GamePlayer.ME)
+				.drones
+				.forEach(d -> {
+					Drone opposite = game.getFoeFor(d.id);
+					boolean foeCom = opposite.isCommitting();
+					int myTurnToCommit = (int)Math.ceil((d.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
+					int oppTurnToCommit = (int)Math.ceil((opposite.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
+					System.err.printf("D %d Foe %d committing %b, turn %d vs %d %n", d.id, opposite.id, foeCom, myTurnToCommit, oppTurnToCommit);
+					if (!foeCom || myTurnToCommit <= oppTurnToCommit) {
+						d.strat = Strat.UP;
+					} else {
+						d.strat = Strat.DOWN;
+					}
+				});
+		}
+
+		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
+			System.err.println("OPP can win :(");
 			gameEstimator.reset();
-			list.keySet().stream().sorted().forEach(key -> {
-				List<Drone> drones = list.get(key);
+			list.forEach((key1, drones) -> {
 				Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
 					.flatMap(drone -> drone.scans.stream())
 					.collect(Collectors.toSet());
@@ -168,9 +194,22 @@ public class DownAndUp extends AbstractStrat {
 			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 			if (myScore >= foeScore) {
 				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
-				commitCalled = true;
-				commit[0] = true;
-				commit[1] = true;
+
+				int ennemyCount = 0;
+				for (Entry<Integer, List<Drone>> entry : list.entrySet()) {
+					if (ennemyCount == 2) {
+						System.err.println("Stopping counter cause all ennemy are before me");
+						break;
+					}
+					for (Drone drone : entry.getValue()) {
+						if (drone.getOwner().getIndex() == GamePlayer.FOE) {
+							ennemyCount ++;
+						} else {
+							System.err.println("Countering with drone " + drone.id);
+							drone.strat = Strat.UP;
+						}
+					}
+				}
 			} else {
 				System.err.println("OPP will win :( %d vs %d".formatted(myScore, foeScore));
 			}
@@ -179,21 +218,17 @@ public class DownAndUp extends AbstractStrat {
 		if (!commitCalled && FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
 			System.err.println("Loosing, so attacking whatever i can");
 			game.gamePlayers.get(GamePlayer.ME).drones
+				.stream()
+				.filter(drone -> drone.strat != Strat.UP)
 				.forEach(drone -> drone.strat = Strat.ATTACK);
 		}
 
-		// Si je commit avant l'autre :
-		// point bonus  moi
-		// estimer la perte potentiel de point bonus (premier + combo) pour l'advesaire.
 
-		// --> le reste ne permet pas de rattraper les données commit + bonus + le reste à récupérer.
-
-		// mon score commit premier + reste potentiel second > reste potentiel premier pour l'autre.
 
 	}
 
 	private boolean isWinning(int index) {
-		return firstWinningIndex != null && firstWinningIndex == index;
+		return index == GamePlayer.ME ? iWin : foeWins;
 	}
 
 	private int switchOn(int i, Drone drone, Radar radar, FishType target, boolean escaping) {
@@ -211,14 +246,21 @@ public class DownAndUp extends AbstractStrat {
 			return distance > (Game.DARK_SCAN_RANGE - Game.FISH_FLEE_SPEED)
 				   && distance < (Game.LIGHT_SCAN_RANGE);
 		});
-		if (
-//			!escaping&&
-			drone.move.getY() >= FishType.JELLY.getUpperLimit()
-			&& (!batterieToogle[i] || (drone.getY() > 6200))
-			&& (isInRange(drone, radar.getTypes(game.fishesMap)) || (target == FishType.CRAB && (drone.getY() > 6200)))
-			&& needLight
-		) {
-			lightOn = true;
+		if (drone.strat == Strat.ATTACK) {
+			lightOn = drone.target != null
+					  && drone.target.pos == null
+			 			&& !batterieToogle[i]
+						&& isInRange(drone, Set.of(drone.target.type));
+		} else {
+			if (
+				//			!escaping&&
+				drone.move.getY() >= FishType.JELLY.getUpperLimit()
+				&& (!batterieToogle[i] || (drone.getY() > 6200))
+				&& (isInRange(drone, radar.getTypes(game.fishesMap)) || (target == FishType.CRAB && (drone.getY() > 6200)))
+				&& needLight
+			) {
+				lightOn = true;
+			}
 		}
 		batterieToogle[i] = lightOn;
 		return lightOn ? 1 : 0;

@@ -810,4 +810,14 @@ public class Game {
         }
         return new Vector(x / list.size(), y / list.size());
     }
+
+    public Drone getFoeFor(int id) {
+        return switch (id) {
+            case 0 -> dronesMap.get(3);
+            case 1 -> dronesMap.get(2);
+            case 2 -> dronesMap.get(1);
+            case 3 -> dronesMap.get(0);
+			default -> throw new IllegalStateException("Unexpected value: " + id);
+		};
+    }
 }

@@ -31,7 +31,7 @@ public class Drone implements Entity {
     public DroneInitialPosition initialPosition = null;
 
 
-    public List<Fish> allocations = new ArrayList<>();
+    public Map<Integer, Fish> allocations = new HashMap<>();
 
     Map<Integer, RadarDirection> radar = new HashMap<>();
 

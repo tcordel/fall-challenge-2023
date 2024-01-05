@@ -263,11 +263,11 @@ public class Player {
 						rz = RadarZone.EXTERNAL;
 
 						if (leftToCurDir == RadarDirection.BR) {
-							droneRight.allocations.add(fish);
-							droneLeft.allocations.add(oppfish);
+							droneRight.allocations.put(currId, fish);
+							droneLeft.allocations.put(oppId, oppfish);
 						} else {
-							droneLeft.allocations.add(fish);
-							droneRight.allocations.add(oppfish);
+							droneLeft.allocations.put(currId, fish);
+							droneRight.allocations.put(oppId, oppfish);
 						}
 					} else if ((directions.stream().filter(d -> d == RadarDirection.BR).count() %2) == 1) {
 						rz = RadarZone.CENTRAL;
@@ -275,29 +275,29 @@ public class Player {
 							boolean alone = Stream.of(leftFoeToCurDir, rightToCurDir, rightFoeToCurDir).noneMatch(a -> a == leftToCurDir);
 //							System.err.println("DroneLeft seet it at " + leftToCurDir + "alone ? " + alone);
 							if (alone) {
-								droneLeft.allocations.add(fish);
-								droneRight.allocations.add(oppfish);
+								droneLeft.allocations.put(currId, fish);
+								droneRight.allocations.put(oppId, oppfish);
 							} else {
-								droneRight.allocations.add(fish);
-								droneLeft.allocations.add(oppfish);
+								droneRight.allocations.put(currId, fish);
+								droneLeft.allocations.put(oppId, oppfish);
 							}
 						} else {
 							boolean alone = Stream.of(leftFoeToCurDir, leftToCurDir, rightFoeToCurDir).noneMatch(a -> a == rightToCurDir);
 //							System.err.println("DroneRight seet it at " + rightToCurDir + "alone ? " + alone);
 							if (alone) {
-								droneRight.allocations.add(fish);
-								droneLeft.allocations.add(oppfish);
+								droneRight.allocations.put(currId, fish);
+								droneLeft.allocations.put(oppId, oppfish);
 							} else {
-								droneLeft.allocations.add(fish);
-								droneRight.allocations.add(oppfish);
+								droneLeft.allocations.put(currId, fish);
+								droneRight.allocations.put(oppId, oppfish);
 							}
 						}
 
 					} else {
 						rz = RadarZone.INNER;
 						// Arbitrary allocation
-						droneLeft.allocations.add(fish);
-						droneRight.allocations.add(oppfish);
+						droneLeft.allocations.put(currId, fish);
+						droneRight.allocations.put(oppId, oppfish);
 					}
 					fish.radarZone = rz;
 					oppfish.radarZone = rz;

@@ -5,11 +5,14 @@ public abstract class AbstractStrat {
 	protected final Game game;
 	protected double _1DegToRadians = Math.toRadians(5);
 	protected double _15DegToRadians = Math.toRadians(15);
+	protected double _35DegToRadians = Math.toRadians(35);
 
 	Vector UP = new Vector(0, -Game.DRONE_MOVE_SPEED);
 	Vector DOWN = new Vector(0, Game.DRONE_MOVE_SPEED);
 	Vector DOWN_LEFT = DOWN.rotate(_15DegToRadians).round();
+	Vector DOWN_BIG_LEFT = DOWN.rotate(_35DegToRadians).round();
 	Vector DOWN_RIGHT = DOWN.rotate(-_15DegToRadians).round();
+	Vector DOWN_BIG_RIGHT = DOWN.rotate(-_35DegToRadians).round();
 
 	protected AbstractStrat(Game game) {this.game = game;}
 

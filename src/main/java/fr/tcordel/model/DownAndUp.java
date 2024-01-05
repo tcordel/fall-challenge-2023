@@ -32,7 +32,7 @@ public class DownAndUp extends AbstractStrat {
 
 	boolean iWin = false;
 	boolean foeWins = false;
-	Map<Integer, Set<Integer>> allocations = new HashMap<>();
+//	Map<Integer, Set<Integer>> allocations = new HashMap<>();
 
 	public void process(Map<Integer, Radar> radars, Set<Integer> scans) {
 		checkWinningState();
@@ -270,33 +270,33 @@ public class DownAndUp extends AbstractStrat {
 
 	private void preAllocate(Map<Integer, Radar> radars) {
 
-		game.gamePlayers.get(GamePlayer.ME).drones
-			.forEach(d -> allocations.put(d.id, new HashSet<>()));
-
-		Drone drone0 = game.gamePlayers.get(GamePlayer.ME).drones.get(0);
-		Drone drone1 = game.gamePlayers.get(GamePlayer.ME).drones.get(1);
-
-		boolean splitHoriz = Math.abs(drone1.getX() - drone0.getX()) >= 1000;
-		boolean splitVert = Math.abs(drone1.getY() - drone0.getY()) >= 1000;
-		boolean drone0isLeft = drone1.getX() > drone0.getX();
-		boolean drone0isUp = drone1.getY() > drone0.getY();
-
-
-		Radar drone0radar = radars.get(drone0.id);
-		Radar drone1radar = radars.get(drone1.id);
-		if (splitHoriz) {
-			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.topLeft : drone0radar.topRight);
-			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.bottomLeft : drone0radar.bottomRight);
-			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.topLeft : drone1radar.topRight);
-			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.bottomLeft : drone1radar.bottomRight);
-		}
-
-		if (splitVert) {
-			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topLeft : drone0radar.bottomLeft);
-			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topRight : drone0radar.bottomRight);
-			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topLeft : drone1radar.bottomLeft);
-			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topRight : drone1radar.bottomRight);
-		}
+//		game.gamePlayers.get(GamePlayer.ME).drones
+//			.forEach(d -> allocations.put(d.id, new HashSet<>()));
+//
+//		Drone drone0 = game.gamePlayers.get(GamePlayer.ME).drones.get(0);
+//		Drone drone1 = game.gamePlayers.get(GamePlayer.ME).drones.get(1);
+//
+//		boolean splitHoriz = Math.abs(drone1.getX() - drone0.getX()) >= 1000;
+//		boolean splitVert = Math.abs(drone1.getY() - drone0.getY()) >= 1000;
+//		boolean drone0isLeft = drone1.getX() > drone0.getX();
+//		boolean drone0isUp = drone1.getY() > drone0.getY();
+//
+//
+//		Radar drone0radar = radars.get(drone0.id);
+//		Radar drone1radar = radars.get(drone1.id);
+//		if (splitHoriz) {
+//			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.topLeft : drone0radar.topRight);
+//			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.bottomLeft : drone0radar.bottomRight);
+//			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.topLeft : drone1radar.topRight);
+//			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.bottomLeft : drone1radar.bottomRight);
+//		}
+//
+//		if (splitVert) {
+//			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topLeft : drone0radar.bottomLeft);
+//			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topRight : drone0radar.bottomRight);
+//			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topLeft : drone1radar.bottomLeft);
+//			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topRight : drone1radar.bottomRight);
+//		}
 
 	}
 
@@ -357,31 +357,30 @@ public class DownAndUp extends AbstractStrat {
 //			}
 //		}
 
-		int oppositeId = game.gamePlayers.get(GamePlayer.ME).drones.get(Math.abs(i - 1)).id;
 
 		for (FishType fishType : FishType.FISH_ORDERED) {
 			radarForType = radarForDrone.forType(game.fishesMap, fishType);
 			target = fishType;
 			RadarDirection radarDirection = isLeft ? RadarDirection.BL : RadarDirection.BR;
-			rd = checkForType(oppositeId, isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
+			rd = checkForType(drone.allocations, isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = !isLeft ? RadarDirection.BL : RadarDirection.BR;
-			rd = checkForType(oppositeId, !isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
+			rd = checkForType(drone.allocations, !isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = isLeft ? RadarDirection.TL : RadarDirection.TR;
-			rd = checkForType(oppositeId, isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
+			rd = checkForType(drone.allocations, isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = !isLeft ? RadarDirection.TL : RadarDirection.TR;
-			rd = checkForType(oppositeId, !isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
+			rd = checkForType(drone.allocations, !isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
@@ -396,42 +395,7 @@ public class DownAndUp extends AbstractStrat {
 					return direction;
 				}
 			}
-		}
-		if (rd == null) {
-			for (FishType fishType : FishType.FISH_ORDERED) {
-				radarForType = radarForDrone.forType(game.fishesMap, fishType);
-				target = fishType;
-				RadarDirection radarDirection = isLeft ? RadarDirection.BL : RadarDirection.BR;
-				if (!(isLeft ? radarForType.bottomLeft : radarForType.bottomRight).isEmpty()) {
-					rd = radarDirection;
-					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
-					break;
-				}
-				radarDirection = isLeft ? RadarDirection.TL : RadarDirection.TR;
-				if (!(isLeft ? radarForType.topLeft : radarForType.topRight).isEmpty()) {
-					rd = radarDirection;
-					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
-					break;
-				}
-
-				radarDirection = !isLeft ? RadarDirection.BL : RadarDirection.BR;
-				if (!(!isLeft ? radarForType.bottomLeft : radarForType.bottomRight).isEmpty()) {
-					rd = radarDirection;
-					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
-					break;
-				}
-
-				radarDirection = !isLeft ? RadarDirection.TL : RadarDirection.TR;
-				if (!(!isLeft ? radarForType.topLeft : radarForType.topRight).isEmpty()) {
-					rd = radarDirection;
-					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
-					break;
-				}
-			}
-
-			if (rd == null) {
-				return UP;
-			}
+			return UP;
 		}
 
 		targets[i] = target;
@@ -456,7 +420,7 @@ public class DownAndUp extends AbstractStrat {
 			System.err.printf("Drone %d may attack %d", drone.id, fishToAttack.get().id);
 			return attackFish.process(fishToAttack.get(), drone);
 		}
-		int threshold = game.getMoveSpeed(drone) / 2;
+		int threshold = game.getMoveSpeed(drone);
 		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
 			System.err.println(drone.getId() + " depth too far from target type " + target + "... " + drone.getY() + "," + threshold);
 			return switch (rd) {
@@ -531,12 +495,9 @@ public class DownAndUp extends AbstractStrat {
 		return filterDirection(drone, vector, direction, xLimit, yLimit);
 	}
 
-	private RadarDirection checkForType(int i, List<Integer> integers, RadarDirection radarDirection) {
-		Optional<Integer> any = integers.stream()
-			.filter(integer -> !allocations.get(i).contains(integer))
-			.findAny();
-		if (any.isPresent()) {
-			allocations.get(i).add(any.get());
+	private RadarDirection checkForType(Map<Integer, Fish> allocations, List<Integer> integers, RadarDirection radarDirection) {
+		if (integers.stream()
+			.anyMatch(allocations::containsKey)) {
 			return radarDirection;
 		}
 		return null;

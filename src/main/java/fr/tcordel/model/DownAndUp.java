@@ -422,7 +422,32 @@ public class DownAndUp extends AbstractStrat {
 		}
 		int threshold = game.getMoveSpeed(drone);
 		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
-			System.err.println(drone.getId() + " depth too far from target type " + target + "... " + drone.getY() + "," + threshold);
+			FishType fishType = FishType.forY(drone.getY(), 0);
+			System.err.println(drone.getId() + " depth too far from target type " + target + "... " + drone.getY() + "at zone" + fishType);
+//			FishType nextZone = switch (rd) {
+//			 case BL, BR ->FishType.deeper(fishType);
+//			 case TL, TR ->FishType.upper(fishType);
+//			};
+//
+//			if (nextZone != null
+//				&& nextZone != target
+//				&& (rd == RadarDirection.BR || rd == RadarDirection.BL)
+//				&& drone.allocations.values().stream().anyMatch(f -> f.getType() == nextZone
+//																	 && !drone.scans.contains(new Scan(f))
+//																	 && f.radarZone == RadarZone.EXTERNAL)) {
+//
+//				if (isLeft) {
+//					if (drone.getX() >= 2100) {
+//						System.err.println("Spotted External Fish in next zone, aim for it" + drone.id);
+//						return DOWN_BIG_LEFT;
+//					}
+//				} else {
+//					if (drone.getX() < 7900) {
+//						System.err.println("Spotted External Fish in next zone, aim for it" + drone.id);
+//						return DOWN_BIG_RIGHT;
+//					}
+//				}
+//			}
 			return switch (rd) {
 				case BL -> drone.getX() > Game.FISH_HEARING_RANGE ? DOWN_LEFT : DOWN;
 				case BR -> drone.getX() < (Game.WIDTH - Game.FISH_HEARING_RANGE) ? DOWN_RIGHT : DOWN;

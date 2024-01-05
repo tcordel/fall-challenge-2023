@@ -39,4 +39,26 @@ public enum FishType {
 
 		return null;
 	}
+
+	public static FishType deeper(FishType type) {
+		if (type == null) {
+			return JELLY;
+		} else if (type==JELLY) {
+			return FISH;
+		} else  {
+			return CRAB;
+		}
+	}
+
+	public static FishType upper(FishType type) {
+		if (type == null) {
+			return null;
+		} else if (type==JELLY) {
+			return null;
+		} else if (type==FISH) {
+			return JELLY;
+		} else  {
+			return FISH;
+		}
+	}
 }

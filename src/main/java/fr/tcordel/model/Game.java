@@ -719,12 +719,15 @@ public class Game {
         return true;
     }
 
+    Collision getCollision(Drone drone, Ugly ugly) {
+        return getCollision(drone, ugly, 0);
+    }
     /**
      * Credit for this collision code goes to the creators of <a href="https://www.codingame.com/contests/mean-max">Mean Max</a>
      */
-    Collision getCollision(Drone drone, Ugly ugly) {
+    Collision getCollision(Drone drone, Ugly ugly, double offset) {
         // Check instant collision
-        if (ugly.getPos().inRange(drone.getPos(), DRONE_HIT_RANGE + UGLY_EAT_RANGE)) {
+        if (ugly.getPos().inRange(drone.getPos(), DRONE_HIT_RANGE + UGLY_EAT_RANGE + offset)) {
 //            System.err.println("Collision with " + ugly.id + "," + ugly.pos);
             return new Collision(0.0, ugly, drone);
         }
@@ -742,7 +745,7 @@ public class Game {
 
         double x2 = x - ux;
         double y2 = y - uy;
-        double r2 = UGLY_EAT_RANGE + DRONE_HIT_RANGE;
+        double r2 = UGLY_EAT_RANGE + DRONE_HIT_RANGE + offset;
         double vx2 = ugly.getSpeed().getX() - drone.getSpeed().getX();
         double vy2 = ugly.getSpeed().getY() - drone.getSpeed().getY();
 

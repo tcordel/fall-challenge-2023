@@ -14,7 +14,7 @@ public abstract class AbstractStrat {
 	protected AbstractStrat(Game game) {this.game = game;}
 
 
-	boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone) {
+	boolean moveAndCheckNoCollision(Drone drone, Vector vector, int i, boolean moveDrone, double offset) {
 		if (moveDrone) {
 			drone.move = drone.pos.add(vector.rotate(i * _1DegToRadians)).round();
 			game.updateDrone(drone);
@@ -22,7 +22,7 @@ public abstract class AbstractStrat {
 		if (game.uglies
 			.stream()
 			.filter(ugly -> ugly.pos != null)
-			.allMatch(u -> game.getCollision(drone, u) == Collision.NONE)) {
+			.allMatch(u -> game.getCollision(drone, u, offset) == Collision.NONE)) {
 			//			if (i == 0) {
 			//					vector.normalize().mult(game.getMoveSpeed(drone));
 			//			}

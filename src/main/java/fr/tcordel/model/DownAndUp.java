@@ -257,7 +257,13 @@ public class DownAndUp extends AbstractStrat {
 
 		for (int i = 0; i < 360; i++) {
 			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
-			if (moveAndCheckNoCollision(drone, vector, offset, true))
+			if (moveAndCheckNoCollision(drone, vector, offset, true, 150))
+				return i > 0;
+		}
+
+		for (int i = 0; i < 360; i++) {
+			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
+			if (moveAndCheckNoCollision(drone, vector, offset, true, 0))
 				return i > 0;
 		}
 		System.err.println("No escape found for drone " + drone.id + ", " + drone.pos + "@" + vector);
@@ -410,7 +416,7 @@ public class DownAndUp extends AbstractStrat {
 			drone.strat = Strat.UP;
 		}
 		if (direction != null) {
-			boolean collision = !moveAndCheckNoCollision(drone, direction, 0, true);
+			boolean collision = !moveAndCheckNoCollision(drone, direction, 0, true, 0);
 			System.err.println("Attacking collision check for drone " + drone.id + ": " + collision);
 			if (collision) {
 				Vector direction2 = filterDirection(drone, drone.pos.add(direction), direction, 0, Game.HEIGHT);

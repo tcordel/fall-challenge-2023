@@ -172,7 +172,7 @@ public class DownAndUp extends AbstractStrat {
 		}
 
 		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
-			System.err.println("OPP can win :(");
+			System.err.println("OPP can win :("); // bug vs bot seed=7773864893213486000
 			gameEstimator.reset();
 			list.forEach((key1, drones) -> {
 				Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
@@ -183,8 +183,8 @@ public class DownAndUp extends AbstractStrat {
 					.collect(Collectors.toSet());
 				gameEstimator.commit(myScans, oppScans);
 			});
-			int myScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+			int myScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 			if (myScore >= foeScore) {
 				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
 

@@ -68,8 +68,8 @@ public class GameEstimator {
 			if (firstToScanAllFishOfType.containsKey(type)) {
 				continue;
 			}
-			boolean iCompleted = playerScannedAllFishOfType(myScans, type);
-			boolean foeCompleted = playerScannedAllFishOfType(foeScans, type);
+			boolean iCompleted = playerScannedAllFishOfType(allOfMyScans, type);
+			boolean foeCompleted = playerScannedAllFishOfType(allOfFoeScans, type);
 			if (iCompleted && !foeCompleted) {
 				firstToScanAllFishOfType.put(type, GamePlayer.ME);
 			} else if (foeCompleted && !iCompleted) {
@@ -82,8 +82,8 @@ public class GameEstimator {
 			if (firstToScanAllFishOfColor.containsKey(color)) {
 				continue;
 			}
-			boolean iCompleted = playerScannedAllFishOfColor(myScans, color);
-			boolean foeCompleted = playerScannedAllFishOfColor(foeScans, color);
+			boolean iCompleted = playerScannedAllFishOfColor(allOfMyScans, color);
+			boolean foeCompleted = playerScannedAllFishOfColor(allOfFoeScans, color);
 			if (iCompleted && !foeCompleted) {
 				firstToScanAllFishOfColor.put(color, GamePlayer.ME);
 			} else if (foeCompleted && !iCompleted) {

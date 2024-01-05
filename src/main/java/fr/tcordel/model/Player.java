@@ -53,7 +53,7 @@ public class Player {
 				game.ugliesMap.put(creatureId, ugly);
 			}
 		}
-		Radar[] radars = null;
+		Map<Integer, Radar> radars = new HashMap<>();
 		List<Vector>[] targets = new List[] {
 			List.of(
 				new Vector(2500, 9000),
@@ -94,15 +94,6 @@ public class Player {
 				game.gamePlayers.get(1).scans.add(new Scan(game.fishesMap.get(creatureId)));
 			}
 			int myDroneCount = in.nextInt();
-			if (FIRST_ROUND) {
-				radars = new Radar[myDroneCount];
-				for (int i = 0; i < myDroneCount; i++) {
-					radars[i] = new Radar();
-				}
-			}
-			for (Radar radar : radars) {
-				radar.reset();
-			}
 			game.dronesMap.values().forEach(Drone::resetRadars);
 			int lastDroneX = 0;
 			for (int i = 0; i < myDroneCount; i++) {
@@ -123,6 +114,7 @@ public class Player {
 					}
 				}
 				if (FIRST_ROUND) {
+					radars.put(droneId, new Radar());
 					myDonesId.add(droneId);
 					if (i == 0 && droneX > (Game.WIDTH / 2)) {
 						System.err.println("switching targets " + droneId + ", " + droneX);
@@ -140,6 +132,7 @@ public class Player {
 				refreshDrone(drone, droneX, droneY, emergency, battery);
 				lastDroneX = droneX;
 			}
+			radars.values().forEach(Radar::reset);
 
 			int foeDroneCount = in.nextInt();
 			for (int i = 0; i < foeDroneCount; i++) {
@@ -226,7 +219,7 @@ public class Player {
 					ALL_AVAILABLE_SCANS.add(new Scan(game.fishesMap.get(creatureId)));
 				}
 				if (!scans.contains(creatureId)) {
-					radars[droneIdToIndex.get(droneId)].populate(creatureId, radarDirection);
+					radars.get(droneId).populate(creatureId, radarDirection);
 				}
 				game.dronesMap.get(droneId).getRadar().put(creatureId, radarDirection);
 			}

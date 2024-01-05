@@ -1,15 +1,7 @@
 package fr.tcordel.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -40,8 +32,9 @@ public class DownAndUp extends AbstractStrat {
 
 	boolean iWin = false;
 	boolean foeWins = false;
-	List<Set<Integer>> allocations = List.of(new HashSet<>(), new HashSet<>());
-	public void process(Radar[] radars, Set<Integer> scans) {
+	Map<Integer, Set<Integer>> allocations = new HashMap<>();
+
+	public void process(Map<Integer, Radar> radars, Set<Integer> scans) {
 		checkWinningState();
 		preAllocate(radars);
 		resetCaches();
@@ -56,7 +49,7 @@ public class DownAndUp extends AbstractStrat {
 			System.out.printf(
 				"MOVE %d %d %d %s%s%n", (int)drone.move.getX(),
 				(int)drone.move.getY(),
-				switchOn(i, drone, radars[i], targets[i], escaping),
+				switchOn(i, drone, radars.get(drone.id), targets[i], escaping),
 				(drone.strat == Strat.UP ? "🏆" : "🤑"),
 				escaping ? "🥵" : "🤗"
 								);
@@ -275,22 +268,32 @@ public class DownAndUp extends AbstractStrat {
 //		return drone.getY() >= 3000;
 	}
 
-	private void preAllocate(Radar[] radars) {
-		if (!Player.FIRST_ROUND && !hasCommitted) {
-			for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
-				hasCommitted = game.gamePlayers.get(GamePlayer.ME).drones.stream().anyMatch(drone -> drone.getY() <= Game.DRONE_START_Y);
-			}
+	private void preAllocate(Map<Integer, Radar> radars) {
+		game.gamePlayers.get(GamePlayer.ME).drones
+			.forEach(d -> allocations.put(d.id, new HashSet<>()));
+
+		Drone drone0 = game.gamePlayers.get(GamePlayer.ME).drones.get(0);
+		Drone drone1 = game.gamePlayers.get(GamePlayer.ME).drones.get(1);
+
+		boolean splitHoriz = Math.abs(drone1.getX() - drone0.getX()) >= 1000;
+		boolean splitVert = Math.abs(drone1.getY() - drone0.getY()) >= 1000;
+		boolean drone0isLeft = drone1.getX() > drone0.getX();
+		boolean drone0isUp = drone1.getY() > drone0.getY();
+
+		Radar drone0radar = radars.get(drone0.id);
+		Radar drone1radar = radars.get(drone1.id);
+		if (splitHoriz) {
+			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.topLeft : drone0radar.topRight);
+			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.bottomLeft : drone0radar.bottomRight);
+			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.topLeft : drone1radar.topRight);
+			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.bottomLeft : drone1radar.bottomRight);
 		}
-		for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
-			allocations.get(i).clear();
-		}
-		if (hasCommitted) {
-			return;
-		}
-		for (int i = 0; i < game.gamePlayers.get(GamePlayer.ME).drones.size(); i++) {
-			boolean isLeft = leftIndex == i;
-			allocations.get(i).addAll(isLeft ? radars[i].bottomLeft : radars[i].bottomRight);
-			allocations.get(i).addAll(isLeft ? radars[i].topLeft : radars[i].topRight);
+
+		if (splitVert) {
+			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topLeft : drone0radar.bottomLeft);
+			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topRight : drone0radar.bottomRight);
+			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topLeft : drone1radar.bottomLeft);
+			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topRight : drone1radar.bottomRight);
 		}
 
 	}
@@ -326,8 +329,9 @@ public class DownAndUp extends AbstractStrat {
 
 
 	FishType[] targets = new FishType[2];
-	private Vector getVector(Radar[] radars, Set<Integer> scans, int i, Drone drone) {
-		Radar radarForDrone = radars[i];
+
+	private Vector getVector(Map<Integer, Radar> radars, Set<Integer> scans, int i, Drone drone) {
+		Radar radarForDrone = radars.get(drone.id);
 		boolean isLeft = leftIndex == i;
 
 		Vector direction = null;
@@ -351,29 +355,31 @@ public class DownAndUp extends AbstractStrat {
 //			}
 //		}
 
+		int oppositeId = game.gamePlayers.get(GamePlayer.ME).drones.get(Math.abs(i - 1)).id;
+
 		for (FishType fishType : FishType.FISH_ORDERED) {
 			radarForType = radarForDrone.forType(game.fishesMap, fishType);
 			target = fishType;
 			RadarDirection radarDirection = isLeft ? RadarDirection.BL : RadarDirection.BR;
-			rd = checkForType(i, isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
+			rd = checkForType(oppositeId, isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = !isLeft ? RadarDirection.BL : RadarDirection.BR;
-			rd = checkForType(i, !isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
+			rd = checkForType(oppositeId, !isLeft ? radarForType.bottomLeft : radarForType.bottomRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = isLeft ? RadarDirection.TL : RadarDirection.TR;
-			rd = checkForType(i, isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
+			rd = checkForType(oppositeId, isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
 			}
 			radarDirection = !isLeft ? RadarDirection.TL : RadarDirection.TR;
-			rd = checkForType(i, !isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
+			rd = checkForType(oppositeId, !isLeft ? radarForType.topLeft : radarForType.topRight, radarDirection);
 			if (rd != null) {
 				System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
 				break;
@@ -388,7 +394,42 @@ public class DownAndUp extends AbstractStrat {
 					return direction;
 				}
 			}
-			return UP;
+		}
+		if (rd == null) {
+			for (FishType fishType : FishType.FISH_ORDERED) {
+				radarForType = radarForDrone.forType(game.fishesMap, fishType);
+				target = fishType;
+				RadarDirection radarDirection = isLeft ? RadarDirection.BL : RadarDirection.BR;
+				if (!(isLeft ? radarForType.bottomLeft : radarForType.bottomRight).isEmpty()) {
+					rd = radarDirection;
+					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
+					break;
+				}
+				radarDirection = isLeft ? RadarDirection.TL : RadarDirection.TR;
+				if (!(isLeft ? radarForType.topLeft : radarForType.topRight).isEmpty()) {
+					rd = radarDirection;
+					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
+					break;
+				}
+
+				radarDirection = !isLeft ? RadarDirection.BL : RadarDirection.BR;
+				if (!(!isLeft ? radarForType.bottomLeft : radarForType.bottomRight).isEmpty()) {
+					rd = radarDirection;
+					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
+					break;
+				}
+
+				radarDirection = !isLeft ? RadarDirection.TL : RadarDirection.TR;
+				if (!(!isLeft ? radarForType.topLeft : radarForType.topRight).isEmpty()) {
+					rd = radarDirection;
+					System.err.println(radarDirection + " for " + drone.id + " aiming for " + fishType);
+					break;
+				}
+			}
+
+			if (rd == null) {
+				return UP;
+			}
 		}
 
 		targets[i] = target;
@@ -454,8 +495,6 @@ public class DownAndUp extends AbstractStrat {
 		}
 		if (drone.target != null) {
 			direction = attackFish.process(drone.target, drone);
-		} else {
-			drone.strat = Strat.UP;
 		}
 		if (direction != null) {
 			boolean collision = !moveAndCheckNoCollision(drone, direction, 0, true, 0);
@@ -492,7 +531,7 @@ public class DownAndUp extends AbstractStrat {
 
 	private RadarDirection checkForType(int i, List<Integer> integers, RadarDirection radarDirection) {
 		Optional<Integer> any = integers.stream()
-			.filter(integer -> !allocations.get(Math.abs(i - 1)).contains(integer))
+			.filter(integer -> !allocations.get(i).contains(integer))
 			.findAny();
 		if (any.isPresent()) {
 			allocations.get(i).add(any.get());

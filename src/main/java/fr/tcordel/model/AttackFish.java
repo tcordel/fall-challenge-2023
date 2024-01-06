@@ -8,6 +8,7 @@ public class AttackFish extends AbstractStrat {
 	Vector process(Fish fish, Drone drone) {
 		Vector target = null;
 		Vector pos = null;
+		resetCache(fish);
 		boolean visible = fish.pos != null;
 		if (visible) {
 			pos = game.snapToFishZone(fish.pos.add(fish.speed), fish);
@@ -36,5 +37,13 @@ public class AttackFish extends AbstractStrat {
 		}
 		System.err.printf("Drone %d attacking %d, f.p %s, f.v %s, t %s %b%n", drone.id, fish.id, pos, fish.speed, target, visible);
 		return target;
+	}
+
+	private void resetCache(Fish fish) {
+		if (Player.ROUND  - fish.lastSeenTurn >= 4) {
+			System.err.println("Resetting position for fish " + fish.id);
+			fish.pos = null;
+			fish.speed = null;
+		}
 	}
 }

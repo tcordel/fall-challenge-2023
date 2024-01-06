@@ -188,6 +188,7 @@ public class Player {
 
 					fish.pos = pos;
 					fish.speed = speed;
+					fish.lastSeenTurn = ROUND;
 					game.visibleFishes.add(fish);
 				} else if (game.ugliesMap.containsKey(creatureId)) {
 					Ugly ugly = game.ugliesMap.get(creatureId);

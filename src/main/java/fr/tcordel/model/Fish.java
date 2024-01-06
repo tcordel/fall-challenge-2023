@@ -16,6 +16,8 @@ public class Fish implements Entity {
 
     public RadarZone radarZone;
 
+    public int lastSeenTurn = 0;
+
     public Fish(int id, int color, FishType type) {
         this.type = type;
         this.color = color;

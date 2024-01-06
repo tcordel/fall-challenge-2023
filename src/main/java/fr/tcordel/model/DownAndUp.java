@@ -118,6 +118,10 @@ public class DownAndUp extends AbstractStrat {
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
 		System.err.println("EndGame estimation : FOE commit me:%d, him %d".formatted(myScoreCommittingFirst2, oppMaxScore2));
 
+		game.gamePlayers.get(GamePlayer.ME)
+			.drones
+			.forEach(d -> d.strat = Strat.DOWN);
+
 		Map<Integer, List<Drone>> list = game.gamePlayers
 			.stream()
 			.flatMap(g -> g.drones.stream())
@@ -165,8 +169,6 @@ public class DownAndUp extends AbstractStrat {
 					System.err.printf("D %d Foe %d committing %b, turn %d vs %d %n", d.id, opposite.id, foeCom, myTurnToCommit, oppTurnToCommit);
 					if (!foeCom || myTurnToCommit <= oppTurnToCommit) {
 						d.strat = Strat.UP;
-					} else {
-						d.strat = Strat.DOWN;
 					}
 				});
 		}
@@ -185,9 +187,7 @@ public class DownAndUp extends AbstractStrat {
 			});
 			int myScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
-			game.gamePlayers.get(GamePlayer.ME)
-				.drones
-				.forEach(d -> d.strat = Strat.DOWN);
+
 			if (myScore >= foeScore) {
 				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
 

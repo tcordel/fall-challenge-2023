@@ -144,8 +144,8 @@ public class DownAndUp extends AbstractStrat {
 //										   .map(d -> d.pos)
 //										   .mapToDouble(Vector::getX)
 //										   .min().orElse(Double.MAX_VALUE));
-		iWin = myScoreCommittingFirst > oppMaxScore;
-		foeWins = oppMaxScore2 > myScoreCommittingFirst2;
+		iWin = myCommitPoint >= oppMaxScore;
+		foeWins = himCommintPoint >= myScoreCommittingFirst2;
 //		if (firstWinningIndex == null) {
 //			if (iWin) {
 //				firstWinningIndex = GamePlayer.ME;
@@ -183,8 +183,8 @@ public class DownAndUp extends AbstractStrat {
 					.collect(Collectors.toSet());
 				gameEstimator.commit(myScans, oppScans);
 			});
-			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 			int myScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
+			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 			if (myScore >= foeScore) {
 				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
 
@@ -208,13 +208,13 @@ public class DownAndUp extends AbstractStrat {
 			}
 		}
 
-		if (!commitCalled && FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
-			System.err.println("Loosing, so attacking whatever i can");
-			game.gamePlayers.get(GamePlayer.ME).drones
-				.stream()
-				.filter(drone -> drone.strat != Strat.UP)
-				.forEach(drone -> drone.strat = Strat.ATTACK);
-		}
+//		if (!commitCalled && FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
+//			System.err.println("Loosing, so attacking whatever i can");
+//			game.gamePlayers.get(GamePlayer.ME).drones
+//				.stream()
+//				.filter(drone -> drone.strat != Strat.UP)
+//				.forEach(drone -> drone.strat = Strat.ATTACK);
+//		}
 
 
 

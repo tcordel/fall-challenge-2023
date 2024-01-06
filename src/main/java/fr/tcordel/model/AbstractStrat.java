@@ -26,7 +26,7 @@ public abstract class AbstractStrat {
 		if (game.uglies
 			.stream()
 			.filter(ugly -> ugly.pos != null)
-			.allMatch(u -> game.getCollision(drone, u, offset) == Collision.NONE)) {
+			.noneMatch(u -> game.getCollision(drone, u, offset))) {
 			//			if (i == 0) {
 			//					vector.normalize().mult(game.getMoveSpeed(drone));
 			//			}

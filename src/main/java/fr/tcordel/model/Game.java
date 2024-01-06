@@ -267,6 +267,15 @@ public class Game {
         }
     }
 
+    public Vector snapToUglyZone(Vector pos) {
+        if (pos.getY() > HEIGHT - 1) {
+           pos = new Vector(pos.getX(), HEIGHT - 1);
+        } else if (pos.getY() < UGLY_UPPER_Y_LIMIT) {
+            pos = new Vector(pos.getX(), UGLY_UPPER_Y_LIMIT);
+        }
+        return pos;
+    }
+
     int updateUgly_iUgly = 0;
     ArrayList<Ugly> updateUgly_closests = new ArrayList<>();
     void updateUglySpeeds() {
@@ -485,15 +494,19 @@ public class Game {
             Vector floatVec = new Vector(0, -1).mult(DRONE_EMERGENCY_SPEED);
             drone.speed = floatVec;
         } else if (drone.move != null) {
-            Vector moveVec = new Vector(drone.pos, drone.move);
-            if (moveVec.length() > moveSpeed) {
-                moveVec = moveVec.normalize().mult(moveSpeed);
-            }
-            drone.speed = moveVec.round();
+            drone.speed = getDroneSpeed(drone.pos, drone.move);
         } else if (drone.pos.getY() < HEIGHT - 1) {
             Vector sinkVec = new Vector(0, 1).mult(DRONE_SINK_SPEED);
             drone.speed = sinkVec;
         }
+    }
+
+    public Vector getDroneSpeed(Vector pos, Vector move) {
+        Vector moveVec = new Vector(pos, move);
+        if (moveVec.length() > DRONE_MOVE_SPEED) {
+            moveVec = moveVec.normalize().mult(DRONE_MOVE_SPEED);
+        }
+        return moveVec.round();
     }
 
     public int getMoveSpeed(Drone drone) {
@@ -719,22 +732,22 @@ public class Game {
         return true;
     }
 
-    Collision getCollision(Drone drone, Ugly ugly) {
+    boolean getCollision(Drone drone, Ugly ugly) {
         return getCollision(drone, ugly, 0);
     }
     /**
      * Credit for this collision code goes to the creators of <a href="https://www.codingame.com/contests/mean-max">Mean Max</a>
      */
-    Collision getCollision(Drone drone, Ugly ugly, double offset) {
+    boolean getCollision(Drone drone, Ugly ugly, double offset) {
         // Check instant collision
         if (ugly.getPos().inRange(drone.getPos(), DRONE_HIT_RANGE + UGLY_EAT_RANGE + offset)) {
 //            System.err.println("Collision with " + ugly.id + "," + ugly.pos);
-            return new Collision(0.0, ugly, drone);
+            return true;
         }
 
         // Both units are motionless
         if (drone.getSpeed().isZero() && ugly.getSpeed().isZero()) {
-            return Collision.NONE;
+            return false;
         }
 
         // Change referencial
@@ -758,7 +771,7 @@ public class Game {
         double a = vx2 * vx2 + vy2 * vy2;
 
         if (a <= 0.0) {
-            return Collision.NONE;
+            return false;
         }
 
         double b = 2.0 * (x2 * vx2 + y2 * vy2);
@@ -766,20 +779,77 @@ public class Game {
         double delta = b * b - 4.0 * a * c;
 
         if (delta < 0.0) {
-            return Collision.NONE;
+            return false;
         }
 
         double t = (-b - Math.sqrt(delta)) / (2.0 * a);
 
         if (t <= 0.0) {
-            return Collision.NONE;
+            return false;
         }
 
         if (t > 1.0) {
-            return Collision.NONE;
+            return false;
         }
 //        System.err.println("Collision with " + ugly.id + "," + ugly.pos);
-        return new Collision(t, ugly, drone);
+        return true;
+    }
+
+    boolean getCollision2(Vector dronePos, Vector droneSpeed, Vector uglyPos, Vector uglySpeed) {
+        // Check instant collision
+        if (uglyPos.inRange(dronePos, DRONE_HIT_RANGE + UGLY_EAT_RANGE)) {
+            //            System.err.println("Collision with " + ugly.id + "," + ugly.pos);
+            return true;
+        }
+
+        // Both units are motionless
+        if (droneSpeed.isZero() && uglySpeed.isZero()) {
+            return false;
+        }
+
+        // Change referencial
+        double x = uglyPos.getX();
+        double y = uglyPos.getY();
+        double ux = dronePos.getX();
+        double uy = dronePos.getY();
+
+        double x2 = x - ux;
+        double y2 = y - uy;
+        double r2 = UGLY_EAT_RANGE + DRONE_HIT_RANGE;
+        double vx2 = uglySpeed.getX() - droneSpeed.getX();
+        double vy2 = uglySpeed.getY() - droneSpeed.getY();
+
+        // Resolving: sqrt((x + t*vx)^2 + (y + t*vy)^2) = radius <=> t^2*(vx^2 + vy^2) + t*2*(x*vx + y*vy) + x^2 + y^2 - radius^2 = 0
+        // at^2 + bt + c = 0;
+        // a = vx^2 + vy^2
+        // b = 2*(x*vx + y*vy)
+        // c = x^2 + y^2 - radius^2
+
+        double a = vx2 * vx2 + vy2 * vy2;
+
+        if (a <= 0.0) {
+            return false;
+        }
+
+        double b = 2.0 * (x2 * vx2 + y2 * vy2);
+        double c = x2 * x2 + y2 * y2 - r2 * r2;
+        double delta = b * b - 4.0 * a * c;
+
+        if (delta < 0.0) {
+            return false;
+        }
+
+        double t = (-b - Math.sqrt(delta)) / (2.0 * a);
+
+        if (t <= 0.0) {
+            return false;
+        }
+
+        if (t > 1.0) {
+            return false;
+        }
+        //        System.err.println("Collision with " + ugly.id + "," + ugly.pos);
+        return true;
     }
 
     Vector snapToDroneZone(Vector pos) {

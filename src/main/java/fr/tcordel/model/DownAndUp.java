@@ -43,7 +43,8 @@ public class DownAndUp extends AbstractStrat {
 				drone.strat = Strat.DOWN;
 			}
 			Vector vector = drone.strat == Strat.UP ? UP : getVector(radars, scans, i, drone);
-			boolean escaping = checkCollision(drone, vector);
+//			boolean escaping = checkCollision(drone, vector);
+			boolean escaping = checkCollisionDeeper(drone, vector);
 			System.out.printf(
 				"MOVE %d %d %d %s%s%n", (int)drone.move.getX(),
 				(int)drone.move.getY(),
@@ -329,6 +330,12 @@ public class DownAndUp extends AbstractStrat {
 
 	}
 
+	/**
+	 * seed=5865112135755987000 vs boss
+	 * @param drone
+	 * @param vector
+	 * @return
+	 */
 	public boolean checkCollision(Drone drone, Vector vector) {
 //
 //		for (int i = 0; i < 360; i++) {
@@ -358,6 +365,79 @@ public class DownAndUp extends AbstractStrat {
 		return true;
 	}
 
+	public boolean checkCollisionDeeper(Drone drone, Vector vector) {
+		List<Ugly> conflicting = game.uglies
+			.stream()
+			.filter(u -> u.pos != null)
+			.filter(u -> u.pos.inRange(drone.pos, 2 * (Game.DRONE_MOVE_SPEED + Game.UGLY_ATTACK_SPEED)))
+			.toList();
+
+		Vector dronePosition = drone.pos;
+		Vector droneMove = game.snapToDroneZone(dronePosition.add(vector));
+
+		if (conflicting.isEmpty()) {
+			drone.move = droneMove;
+			return false;
+		}
+
+
+		int i = 0;
+		main:
+		for (; i < 360; i++) {
+			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
+
+			Vector rotate = vector.rotate(offset * _1DegToRadians);
+			droneMove = game.snapToDroneZone(dronePosition.add(rotate).round());
+			Vector droneSpeed = game.getDroneSpeed(dronePosition, droneMove);
+
+			for (Ugly ugly : conflicting) {
+				if (game.getCollision2(dronePosition, droneSpeed, ugly.pos, ugly.speed)) {
+					continue main;
+				}
+			}
+
+			int j = 0;
+			inner:
+			for (; j < 25; j++) {
+				int offset2 = (j % 2 > 0 ? 1 : -1) * (j / 2);
+				Vector secondMove = game.snapToDroneZone(droneMove.add(rotate.rotate(offset2 * _15DegToRadians)).round());
+				Vector secondSpeed = game.getDroneSpeed(droneMove, secondMove);
+
+				for (Ugly ugly : conflicting) {
+					if (ugly.speed.length() > 0) {
+//						continue;
+					}
+					Vector newPosition = game.snapToUglyZone(ugly.pos.add(ugly.speed));
+					Vector attackVec = new Vector(newPosition, droneMove);
+					if (attackVec.length() > Game.LIGHT_SCAN_RANGE) {
+						continue;
+					}
+					if (attackVec.length() > Game.UGLY_ATTACK_SPEED) {
+						attackVec = attackVec.normalize().mult(Game.UGLY_ATTACK_SPEED);
+					}
+					attackVec = attackVec.round();
+					System.err.println("AttackVec " + ugly.id + " " + newPosition +" - "+ attackVec + " with drone at " + droneMove );
+
+					if (game.getCollision2(droneMove, secondSpeed, newPosition, attackVec)) {
+						continue inner;
+					}
+				}
+				break;
+			}
+
+			if (j == 25) {
+				System.err.println("Second step collision detected");
+				continue;
+			}
+			//			if (game.uglies
+//				.stream()
+//				.filter(ugly -> ugly.pos != null)
+//				.noneMatch(u -> game.getCollision(drone, u, offset))) {
+			break;
+		}
+		drone.move = droneMove;
+		return i > 0;
+	}
 
 	FishType[] targets = new FishType[2];
 
@@ -538,7 +618,7 @@ public class DownAndUp extends AbstractStrat {
 		boolean processFilter = game.uglies
 									.stream()
 									.filter(ugly -> ugly.pos != null)
-									.allMatch(u -> game.getCollision(drone, u) == Collision.NONE);
+									.noneMatch(u -> game.getCollision(drone, u));
 
 		if (!processFilter) {
 			System.err.println("Filter border target only for " + drone.id + " due to collision");

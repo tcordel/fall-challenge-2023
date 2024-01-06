@@ -185,6 +185,9 @@ public class DownAndUp extends AbstractStrat {
 			});
 			int myScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+			game.gamePlayers.get(GamePlayer.ME)
+				.drones
+				.forEach(d -> d.strat = Strat.DOWN);
 			if (myScore >= foeScore) {
 				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
 

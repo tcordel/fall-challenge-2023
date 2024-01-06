@@ -427,7 +427,7 @@ public class DownAndUp extends AbstractStrat {
 		Optional<Fish> fishToAttack = drone.scans.stream()
 			.filter(scan ->  game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
 			.map(scan -> game.fishesMap.get(scan.fishId))
-			.filter(f -> !f.escaped)
+			.filter(f -> !f.escaped && f.pos != null)
 			.filter(fish -> isLeft ? (fish.getX() < Game.FISH_FLEE_SPEED * 2) : (fish.getX() > (Game.WIDTH - Game.FISH_FLEE_SPEED * 2)))
 			.filter(fish -> fish.pos.euclideanTo(drone.pos) < (Game.FISH_HEARING_RANGE + Game.DRONE_MOVE_SPEED))
 			.filter(fish -> game.gamePlayers.get(GamePlayer.FOE).drones.stream()

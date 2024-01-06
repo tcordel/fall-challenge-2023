@@ -14,8 +14,6 @@ public class DownAndUp extends AbstractStrat {
 	public static final boolean FOE_WINNNING_COMMIT_STRAT = true;
 	public static final boolean ATTACK_RESSOURCE_ON_NO_ALLOCATION = true;
 
-	private final GameEstimator gameEstimator = new GameEstimator();
-	private final GameEstimator gameEstimator2 = new GameEstimator();
 	public int leftIndex = 0;
 
 
@@ -70,11 +68,11 @@ public class DownAndUp extends AbstractStrat {
 	}
 
 	private void checkWinningState() {
-		if (game.gamePlayers.get(GamePlayer.ME).getScore() > 0 ||
-			game.gamePlayers.get(GamePlayer.FOE).getScore() > 0 ) {
-			System.err.println("No winning state SCORE");
-			return;
-		}
+//		if (game.gamePlayers.get(GamePlayer.ME).getScore() > 0 ||
+//			game.gamePlayers.get(GamePlayer.FOE).getScore() > 0 ) {
+//			System.err.println("No winning state SCORE");
+//			return;
+//		}
 //
 //		if (game.gamePlayers.get(GamePlayer.ME).drones.stream().anyMatch(drone -> drone.strat == Strat.ATTACK)) {
 //			System.err.println("No winning state ATTACK");
@@ -97,22 +95,24 @@ public class DownAndUp extends AbstractStrat {
 			.peek(drone -> System.err.println("Speed " + drone.id + " -> " + drone.isCommitting()))
 			.allMatch(Drone::isCommitting);
 
-		gameEstimator.reset();
-		gameEstimator2.reset();
+
+
 
 		Set<Scan> scans = game.gamePlayers.get(GamePlayer.ME).drones.stream().flatMap(drone -> drone.scans.stream())
 			.collect(Collectors.toSet());
 		Set<Scan> scansFoe = game.gamePlayers.get(GamePlayer.FOE).drones.stream().flatMap(drone -> drone.scans.stream())
 			.collect(Collectors.toSet());
+		GameEstimator gameEstimator = Player.gameEstimator.clone();
 		int myCommitPoint = gameEstimator.computeScanScore(scans, game.gamePlayers.get(GamePlayer.ME).getIndex());
 //		gameEstimator.computeScanScore(scansFoe, game.gamePlayers.get(GamePlayer.FOE).getIndex());
 		int oppMaxScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 		int myScoreCommittingFirst = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 
-		int himCommintPoint = gameEstimator2.computeScanScore(scansFoe, game.gamePlayers.get(GamePlayer.FOE).getIndex());
-//		gameEstimator2.computeScanScore(scans, game.gamePlayers.get(GamePlayer.ME).getIndex());
-		int myScoreCommittingFirst2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
-		int oppMaxScore2 = gameEstimator2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+		gameEstimator = Player.gameEstimator.clone();
+		int himCommintPoint = gameEstimator.computeScanScore(scansFoe, game.gamePlayers.get(GamePlayer.FOE).getIndex());
+//		gameEstimator.computeScanScore(scans, game.gamePlayers.get(GamePlayer.ME).getIndex());
+		int myScoreCommittingFirst2 = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
+		int oppMaxScore2 = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 
 		System.err.println("Committing me:%d, him %d".formatted(myCommitPoint, himCommintPoint));
 		System.err.println("EndGame estimation : I commit me:%d, him %d".formatted(myScoreCommittingFirst, oppMaxScore));
@@ -162,7 +162,7 @@ public class DownAndUp extends AbstractStrat {
 //			}
 //		}
 
-		gameEstimator.reset();
+		GameEstimator gameEstimatorFinal = Player.gameEstimator.clone();
 		list.forEach((key1, drones) -> {
 			Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
 				.flatMap(drone -> drone.scans.stream())
@@ -170,12 +170,13 @@ public class DownAndUp extends AbstractStrat {
 			Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1 && d.isCommitting())
 				.flatMap(drone -> drone.scans.stream())
 				.collect(Collectors.toSet());
-			gameEstimator.commit(myScans, oppScans);
+			gameEstimatorFinal.commit(myScans, oppScans);
 		});
 
-		int myHitPointPondered = gameEstimator.getScore(GamePlayer.ME);
-		int oppMaxScorePondered = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
-		System.err.println("Committing me PONDERED vs end estimation :%d, him %d".formatted(myHitPointPondered, oppMaxScorePondered));
+		int myHitPointPondered = gameEstimatorFinal.getScore(GamePlayer.ME);
+		int oppMaxScorePondered = gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+		int meMaxScorePondered = gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
+		System.err.println("Committing me PONDERED vs end estimation :%d, him %d, myMax %d".formatted(myHitPointPondered, oppMaxScorePondered, meMaxScorePondered));
 		iWin = myHitPointPondered >= oppMaxScorePondered;
 		System.err.println("MeWINS " + isWinning(GamePlayer.ME));
 		System.err.println("FoeWINS " + isWinning(GamePlayer.FOE));
@@ -197,7 +198,7 @@ public class DownAndUp extends AbstractStrat {
 
 		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
 			System.err.println("OPP can win :("); // bug vs bot seed=7773864893213486000
-			gameEstimator.reset();
+			GameEstimator gameEstimatorFinal2 = Player.gameEstimator.clone();
 			list.forEach((key1, drones) -> {
 				Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
 					.flatMap(drone -> drone.scans.stream())
@@ -205,10 +206,10 @@ public class DownAndUp extends AbstractStrat {
 				Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1)
 					.flatMap(drone -> drone.scans.stream())
 					.collect(Collectors.toSet());
-				gameEstimator.commit(myScans, oppScans);
+				gameEstimatorFinal2.commit(myScans, oppScans);
 			});
-			int myScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
-			int foeScore = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+			int myScore = gameEstimatorFinal2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
+			int foeScore = gameEstimatorFinal2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 
 			if (myScore >= foeScore) {
 				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));

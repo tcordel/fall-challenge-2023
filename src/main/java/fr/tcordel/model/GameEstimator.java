@@ -162,11 +162,21 @@ public class GameEstimator {
 		return true;
 	}
 
-	public void reset() {
-		firstToScan.clear();
-		firstToScanAllFishOfColor.clear();
-		firstToScanAllFishOfType.clear();
-		allOfMyScans.clear();
-		allOfFoeScans.clear();
+	//	public void reset() {
+	//		firstToScan.clear();
+	//		firstToScanAllFishOfColor.clear();
+	//		firstToScanAllFishOfType.clear();
+	//		allOfMyScans.clear();
+	//		allOfFoeScans.clear();
+	//	}
+
+	public GameEstimator clone() {
+		GameEstimator clone = new GameEstimator();
+		clone.allOfMyScans = new HashSet<>(allOfMyScans);
+		clone.allOfFoeScans = new HashSet<>(allOfFoeScans);
+		clone.firstToScan = new HashMap<>(firstToScan);
+		clone.firstToScanAllFishOfColor = new HashMap<>(firstToScanAllFishOfColor);
+		clone.firstToScanAllFishOfType = new HashMap<>(firstToScanAllFishOfType);
+		return clone;
 	}
 }

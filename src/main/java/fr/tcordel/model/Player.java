@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 public class Player {
 
+	static GameEstimator gameEstimator = new GameEstimator();
 	static Game game = new Game();
 	static DownAndUp downAndUp = new DownAndUp(game);
 
@@ -70,6 +71,9 @@ public class Player {
 		foe.setIIndex(GamePlayer.FOE);
 		game.gamePlayers = List.of(me, foe);
 		Set<Integer> allIds = new HashSet<>();
+
+		Set<Scan> myCommit = new HashSet<>();
+		Set<Scan> foeCommit = new HashSet<>();
 		// game loop
 		while (true) {
 			int myScore = in.nextInt();
@@ -77,23 +81,34 @@ public class Player {
 			int foeScore = in.nextInt();
 			game.gamePlayers.get(1).setScore(foeScore);
 
+			myCommit.clear();
+			foeCommit.clear();
 			int myScanCount = in.nextInt();
 			scans.clear();
 			game.visibleFishes.clear();
 			game.visibleUglies.clear();
 
 			game.gamePlayers.get(0).scans.clear();
+
 			for (int i = 0; i < myScanCount; i++) {
 				int creatureId = in.nextInt();
-				game.gamePlayers.get(0).scans.add(new Scan(game.fishesMap.get(creatureId)));
+				Scan e = new Scan(game.fishesMap.get(creatureId));
+				if (game.gamePlayers.get(0).scans.add(e)) {
+					myCommit.add(e);
+				}
 				scans.add(creatureId);
 			}
 			int foeScanCount = in.nextInt();
 			game.gamePlayers.get(1).scans.clear();
 			for (int i = 0; i < foeScanCount; i++) {
 				int creatureId = in.nextInt();
-				game.gamePlayers.get(1).scans.add(new Scan(game.fishesMap.get(creatureId)));
+				Scan e = new Scan(game.fishesMap.get(creatureId));
+				if (game.gamePlayers.get(1).scans.add(e)) {
+					foeCommit.add(e);
+				}
 			}
+
+			gameEstimator.commit(myCommit, foeCommit);
 			int myDroneCount = in.nextInt();
 			game.dronesMap.values().forEach(Drone::resetRadars);
 			int lastDroneX = 0;

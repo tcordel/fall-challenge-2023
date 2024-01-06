@@ -320,12 +320,12 @@ public class DownAndUp extends AbstractStrat {
 	}
 
 	public boolean checkCollision(Drone drone, Vector vector) {
-
-		for (int i = 0; i < 360; i++) {
-			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
-			if (moveAndCheckNoCollision(drone, vector, offset, true, 80))
-				return i > 0;
-		}
+//
+//		for (int i = 0; i < 360; i++) {
+//			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
+//			if (moveAndCheckNoCollision(drone, vector, offset, true, 80))
+//				return i > 0;
+//		}
 
 		for (int i = 0; i < 360; i++) {
 			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
@@ -420,7 +420,7 @@ public class DownAndUp extends AbstractStrat {
 		targets[i] = target;
 
 		RadarDirection finalRd = rd;
-		Predicate<Fish> sameDirection = f -> switch (finalRd) {
+		Predicate<Fish> sameDirection = f -> isWinning(GamePlayer.FOE) || switch (finalRd) {
 			case BL, BR ->f.pos.getY() >= drone.pos.getY();
 			case TL, TR ->f.pos.getY() <= drone.pos.getY();
 		};

@@ -254,7 +254,7 @@ public class Game {
                 Vector from = ugly.pos;
                 ugly.pos = from.add(ugly.speed);
                 snapToUglyZone(ugly);
-                System.err.println("Move ugly " + ugly.id + " from " + from + " to " + ugly.pos + " speed" + ugly.getSpeed());
+//                System.err.println("Move ugly " + ugly.id + " from " + from + " to " + ugly.pos + " speed" + ugly.getSpeed());
             }
         }
     }

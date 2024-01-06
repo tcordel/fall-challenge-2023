@@ -200,43 +200,43 @@ public class DownAndUp extends AbstractStrat {
 				});
 		}
 
-		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
-			System.err.println("OPP can win :("); // bug vs bot seed=7773864893213486000
-			GameEstimator gameEstimatorFinal2 = Player.gameEstimator.clone();
-			list.forEach((key1, drones) -> {
-				Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
-					.flatMap(drone -> drone.scans.stream())
-					.collect(Collectors.toSet());
-				Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1)
-					.flatMap(drone -> drone.scans.stream())
-					.collect(Collectors.toSet());
-				gameEstimatorFinal2.commit(myScans, oppScans);
-			});
-			int myScore = gameEstimatorFinal2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
-			int foeScore = gameEstimatorFinal2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
-
-			if (myScore >= foeScore) {
-				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
-
-				int ennemyCount = 0;
-				for (Entry<Integer, List<Drone>> entry : list.entrySet()) {
-					if (ennemyCount == 2) {
-						System.err.println("Stopping counter cause all ennemy are before me");
-						break;
-					}
-					for (Drone drone : entry.getValue()) {
-						if (drone.getOwner().getIndex() == GamePlayer.FOE) {
-							ennemyCount ++;
-						} else {
-							System.err.println("Countering with drone " + drone.id);
-							drone.strat = Strat.UP;
-						}
-					}
-				}
-			} else {
-				System.err.println("OPP will win :( %d vs %d".formatted(myScore, foeScore));
-			}
-		}
+//		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
+//			System.err.println("OPP can win :("); // bug vs bot seed=7773864893213486000
+//			GameEstimator gameEstimatorFinal2 = Player.gameEstimator.clone();
+//			list.forEach((key1, drones) -> {
+//				Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
+//					.flatMap(drone -> drone.scans.stream())
+//					.collect(Collectors.toSet());
+//				Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1)
+//					.flatMap(drone -> drone.scans.stream())
+//					.collect(Collectors.toSet());
+//				gameEstimatorFinal2.commit(myScans, oppScans);
+//			});
+//			int myScore = gameEstimatorFinal2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
+//			int foeScore = gameEstimatorFinal2.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+//
+//			if (myScore >= foeScore) {
+//				System.err.println("Rushing toward surface %d vs %d".formatted(myScore, foeScore));
+//
+//				int ennemyCount = 0;
+//				for (Entry<Integer, List<Drone>> entry : list.entrySet()) {
+//					if (ennemyCount == 2) {
+//						System.err.println("Stopping counter cause all ennemy are before me");
+//						break;
+//					}
+//					for (Drone drone : entry.getValue()) {
+//						if (drone.getOwner().getIndex() == GamePlayer.FOE) {
+//							ennemyCount ++;
+//						} else {
+//							System.err.println("Countering with drone " + drone.id);
+//							drone.strat = Strat.UP;
+//						}
+//					}
+//				}
+//			} else {
+//				System.err.println("OPP will win :( %d vs %d".formatted(myScore, foeScore));
+//			}
+//		}
 
 		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
 			System.err.println("Loosing, so attacking whatever i can");
@@ -416,7 +416,7 @@ public class DownAndUp extends AbstractStrat {
 						attackVec = attackVec.normalize().mult(Game.UGLY_ATTACK_SPEED);
 					}
 					attackVec = attackVec.round();
-					System.err.println("AttackVec " + ugly.id + " " + newPosition +" - "+ attackVec + " with drone at " + droneMove );
+//					System.err.println("AttackVec " + ugly.id + " " + newPosition +" - "+ attackVec + " with drone at " + droneMove );
 
 					if (game.getCollision2(droneMove, secondSpeed, newPosition, attackVec)) {
 						continue inner;
@@ -575,7 +575,7 @@ public class DownAndUp extends AbstractStrat {
 		//			}
 		//		}
 		//		RadarDirection rd = goToCenter ? RadarDirection.BR : RadarDirection.BL;
-		direction = getFilteredVector(drone, rd.getDirection(), 1000, 400);
+		direction = getFilteredVector(drone, rd.getDirection(), 400, 400);
 
 		return direction;
 	}

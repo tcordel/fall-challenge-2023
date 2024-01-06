@@ -452,9 +452,9 @@ public class DownAndUp extends AbstractStrat {
 //				}
 //			}
 			return switch (rd) {
-//				case BL -> drone.getX() > Game.FISH_HEARING_RANGE ? DOWN_LEFT : DOWN;
-//				case BR -> drone.getX() < (Game.WIDTH - Game.FISH_HEARING_RANGE) ? DOWN_RIGHT : DOWN;
-				case BL, BR -> DOWN;
+				case BL -> drone.getX() > Game.FISH_HEARING_RANGE ? DOWN_LEFT : DOWN;
+				case BR -> drone.getX() < (Game.WIDTH - Game.FISH_HEARING_RANGE) ? DOWN_RIGHT : DOWN;
+//				case BL, BR -> DOWN;
 				case TL, TR -> UP;
 			};
 		}

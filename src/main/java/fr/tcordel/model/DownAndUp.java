@@ -148,7 +148,7 @@ public class DownAndUp extends AbstractStrat {
 //										   .map(d -> d.pos)
 //										   .mapToDouble(Vector::getX)
 //										   .min().orElse(Double.MAX_VALUE));
-		iWin = myCommitPoint >= oppMaxScore;
+//		iWin = myCommitPoint >= oppMaxScore;
 		foeWins = himCommintPoint >= myScoreCommittingFirst2;
 //		if (firstWinningIndex == null) {
 //			if (iWin) {
@@ -157,19 +157,35 @@ public class DownAndUp extends AbstractStrat {
 //				firstWinningIndex = GamePlayer.FOE;
 //			}
 //		}
+
+		gameEstimator.reset();
+		list.forEach((key1, drones) -> {
+			Set<Scan> myScans = drones.stream().filter(d -> d.getOwner().getIndex() == 0)
+				.flatMap(drone -> drone.scans.stream())
+				.collect(Collectors.toSet());
+			Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1 && d.isCommitting())
+				.flatMap(drone -> drone.scans.stream())
+				.collect(Collectors.toSet());
+			gameEstimator.commit(myScans, oppScans);
+		});
+
+		int myHitPointPondered = gameEstimator.getScore(GamePlayer.ME);
+		int oppMaxScorePondered = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+		System.err.println("Committing me PONDERED vs end estimation :%d, him %d".formatted(myHitPointPondered, oppMaxScorePondered));
+		iWin = myHitPointPondered >= oppMaxScorePondered;
 		if (isWinning(GamePlayer.ME)) {
 			System.err.println("I can win !!");
 			game.gamePlayers.get(GamePlayer.ME)
 				.drones
 				.forEach(d -> {
-					Drone opposite = game.getFoeFor(d.id);
-					boolean foeCom = opposite.isCommitting();
-					int myTurnToCommit = (int)Math.ceil((d.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
-					int oppTurnToCommit = (int)Math.ceil((opposite.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
-					System.err.printf("D %d Foe %d committing %b, turn %d vs %d %n", d.id, opposite.id, foeCom, myTurnToCommit, oppTurnToCommit);
-					if (!foeCom || myTurnToCommit <= oppTurnToCommit) {
+//					Drone opposite = game.getFoeFor(d.id);
+//					boolean foeCom = opposite.isCommitting();
+//					int myTurnToCommit = (int)Math.ceil((d.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
+//					int oppTurnToCommit = (int)Math.ceil((opposite.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
+//					System.err.printf("D %d Foe %d committing %b, turn %d vs %d %n", d.id, opposite.id, foeCom, myTurnToCommit, oppTurnToCommit);
+//					if (!foeCom || myTurnToCommit <= oppTurnToCommit) {
 						d.strat = Strat.UP;
-					}
+//					}
 				});
 		}
 
@@ -252,7 +268,7 @@ public class DownAndUp extends AbstractStrat {
 				//			!escaping&&
 				drone.move.getY() >= FishType.JELLY.getUpperLimit()
 				&& (!batterieToogle[i] || (drone.getY() > 6500))
-				&& (isInRange(drone, radar.getTypes(game.fishesMap)) || isUnknownUgly || (target == FishType.CRAB && (drone.getY() > 6500)))
+				&& (isInRange(drone, radar.getTypes(drone.allocations)) || isUnknownUgly || (target == FishType.CRAB && (drone.getY() > 6500)))
 				&& needLight
 			) {
 				lightOn = true;
@@ -307,7 +323,7 @@ public class DownAndUp extends AbstractStrat {
 
 		for (int i = 0; i < 360; i++) {
 			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
-			if (moveAndCheckNoCollision(drone, vector, offset, true, 0))
+			if (moveAndCheckNoCollision(drone, vector, offset, true, 80))
 				return i > 0;
 		}
 

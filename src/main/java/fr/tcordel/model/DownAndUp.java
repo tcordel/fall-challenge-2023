@@ -125,6 +125,7 @@ public class DownAndUp extends AbstractStrat {
 		Map<Integer, List<Drone>> list = game.gamePlayers
 			.stream()
 			.flatMap(g -> g.drones.stream())
+			.filter(d -> !d.scans.isEmpty())
 			.collect(Collectors.toMap(a -> (int) Math.ceil((a.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED), drone -> {
 					List<Drone> arrayList = new ArrayList<>();
 					arrayList.add(drone);
@@ -153,7 +154,7 @@ public class DownAndUp extends AbstractStrat {
 //										   .mapToDouble(Vector::getX)
 //										   .min().orElse(Double.MAX_VALUE));
 //		iWin = myCommitPoint >= oppMaxScore;
-		foeWins = himCommintPoint >= myScoreCommittingFirst2;
+		foeWins = oppMaxScore2 >= myScoreCommittingFirst2;
 //		if (firstWinningIndex == null) {
 //			if (iWin) {
 //				firstWinningIndex = GamePlayer.ME;
@@ -184,6 +185,8 @@ public class DownAndUp extends AbstractStrat {
 			System.err.println("I can win !!");
 			game.gamePlayers.get(GamePlayer.ME)
 				.drones
+				.stream()
+				.filter(d -> !d.scans.isEmpty())
 				.forEach(d -> {
 //					Drone opposite = game.getFoeFor(d.id);
 //					boolean foeCom = opposite.isCommitting();

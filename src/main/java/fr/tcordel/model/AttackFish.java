@@ -6,6 +6,7 @@ public class AttackFish extends AbstractStrat {
 	public AttackFish(Game game) {super(game);}
 
 	Vector process(Fish fish, Drone drone) {
+		drone.strat = Strat.ATTACK;
 		drone.target = fish;
 		Vector target = null;
 		Vector pos = null;

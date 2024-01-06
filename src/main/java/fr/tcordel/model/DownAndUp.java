@@ -243,10 +243,10 @@ public class DownAndUp extends AbstractStrat {
 				   && distance < (Game.LIGHT_SCAN_RANGE);
 		});
 		if (drone.strat == Strat.ATTACK) {
-			lightOn = drone.target != null
+			lightOn = ((drone.target != null
 					  && drone.target.pos == null
-			 			&& !batterieToogle[i]
-						&& isInRange(drone, Set.of(drone.target.type));
+						&& isInRange(drone, Set.of(drone.target.type))) || isUnknownUgly)
+					  && !batterieToogle[i];
 		} else {
 			if (
 				//			!escaping&&
@@ -307,7 +307,7 @@ public class DownAndUp extends AbstractStrat {
 
 		for (int i = 0; i < 360; i++) {
 			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
-			if (moveAndCheckNoCollision(drone, vector, offset, true, 150))
+			if (moveAndCheckNoCollision(drone, vector, offset, true, 0))
 				return i > 0;
 		}
 

@@ -75,11 +75,11 @@ public class DownAndUp extends AbstractStrat {
 			System.err.println("No winning state SCORE");
 			return;
 		}
-
-		if (game.gamePlayers.get(GamePlayer.ME).drones.stream().anyMatch(drone -> drone.strat == Strat.ATTACK)) {
-			System.err.println("No winning state ATTACK");
-			return;
-		}
+//
+//		if (game.gamePlayers.get(GamePlayer.ME).drones.stream().anyMatch(drone -> drone.strat == Strat.ATTACK)) {
+//			System.err.println("No winning state ATTACK");
+//			return;
+//		}
 
 		// Si je commit avant l'autre :
 		// point bonus  moi
@@ -135,6 +135,10 @@ public class DownAndUp extends AbstractStrat {
 				},
 				TreeMap::new));
 
+		list.forEach((k,v) -> {
+			// vs seed=1450311271026407200 Bondo416
+			System.err.println("Commit " + k + "id " + v.stream().map(Drone::getId).map(String::valueOf).collect(Collectors.joining(",")));
+		});
 
 
 //		boolean iWillCommitFirst = !foeCommitting ||
@@ -173,6 +177,8 @@ public class DownAndUp extends AbstractStrat {
 		int oppMaxScorePondered = gameEstimator.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 		System.err.println("Committing me PONDERED vs end estimation :%d, him %d".formatted(myHitPointPondered, oppMaxScorePondered));
 		iWin = myHitPointPondered >= oppMaxScorePondered;
+		System.err.println("MeWINS " + isWinning(GamePlayer.ME));
+		System.err.println("FoeWINS " + isWinning(GamePlayer.FOE));
 		if (isWinning(GamePlayer.ME)) {
 			System.err.println("I can win !!");
 			game.gamePlayers.get(GamePlayer.ME)
@@ -227,13 +233,13 @@ public class DownAndUp extends AbstractStrat {
 			}
 		}
 
-//		if (!commitCalled && FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
-//			System.err.println("Loosing, so attacking whatever i can");
-//			game.gamePlayers.get(GamePlayer.ME).drones
-//				.stream()
-//				.filter(drone -> drone.strat != Strat.UP)
-//				.forEach(drone -> drone.strat = Strat.ATTACK);
-//		}
+		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
+			System.err.println("Loosing, so attacking whatever i can");
+			game.gamePlayers.get(GamePlayer.ME).drones
+				.stream()
+				.filter(drone -> drone.strat != Strat.UP)
+				.forEach(drone -> drone.strat = Strat.ATTACK);
+		}
 
 
 
@@ -248,8 +254,8 @@ public class DownAndUp extends AbstractStrat {
 		game.updateDrone(drone);
 		boolean isUnknownUgly = game.uglies.stream().anyMatch(ugly -> ugly.pos == null);
 		boolean needLight = isUnknownUgly
-							|| game.fishes.stream().anyMatch(fish -> fish.pos == null)
-							|| game.fishes.stream().anyMatch(fish -> {
+							|| drone.allocations.values().stream().anyMatch(fish -> fish.pos == null)
+							|| drone.allocations.values().stream().anyMatch(fish -> {
 			Scan scan = new Scan(fish);
 			if (drone.scans.contains(scan) || game.gamePlayers.get(GamePlayer.ME).scans.contains(scan)) {
 					return false;

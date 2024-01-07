@@ -503,6 +503,10 @@ public class Game {
 
     public Vector getDroneSpeed(Vector pos, Vector move) {
         Vector moveVec = new Vector(pos, move);
+        return normalizeDroneSpeed(moveVec);
+    }
+
+    public Vector normalizeDroneSpeed(Vector moveVec) {
         if (moveVec.length() > DRONE_MOVE_SPEED) {
             moveVec = moveVec.normalize().mult(DRONE_MOVE_SPEED);
         }

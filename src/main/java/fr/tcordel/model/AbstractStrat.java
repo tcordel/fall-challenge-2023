@@ -42,22 +42,24 @@ public abstract class AbstractStrat {
 		double toXborder = Math.min(vector.getX(), Math.abs(vector.getX() - Game.WIDTH));
 		double currentToXBorder = Math.min(drone.getX(), Math.abs(drone.getX() - Game.WIDTH));
 		if ((toXborder < currentToXBorder) && (toXborder < xLimit)) {
-			System.err.println("Reset X for drone " + drone.getId());
-			direction =  new Vector(0, direction.getY());
+			double newX = drone.getX() > (Game.WIDTH / 2) ? Math.max(0, Game.WIDTH - xLimit - drone.getX()) : Math.min(0, drone.getX() - xLimit);
+			System.err.println("Reset X for drone " + drone.getId() + " newX" + newX);
+			direction =  new Vector(newX, direction.getY());
 		}
 
 		vector = drone.pos.add(direction);
 		double toYborder = Game.HEIGHT - vector.getY();
 		double currentToYBorder = Game.HEIGHT - drone.getY();
 		if ((toYborder < currentToYBorder) && (toYborder < yLimit)) {
-			System.err.println("Reset Y for drone " + drone.getId() + " v" + vector+ ", " + yLimit);
-			direction =  new Vector(direction.getX(), 0);
+			double newY = Math.max(0, Game.HEIGHT - yLimit - drone.getY());
+			System.err.println("Reset Y for drone " + drone.getId() + " v" + vector+ ", " + yLimit + " new Y " + newY);
+			direction =  new Vector(direction.getX(), newY);
 		}
-		if (direction.getX() == 0 && direction.getY() == 0) {
+		if (direction.getX() <= 2 && direction.getY() <= 2) {
 			System.err.println("GoingUP for drone " + drone.getId());
 			direction = UP;
 		}
-		return direction
-			.normalize().mult(game.getMoveSpeed(drone)).round();
+		return direction;
+//			.normalize().mult(game.getMoveSpeed(drone)).round(); : why ??
 	}
 }

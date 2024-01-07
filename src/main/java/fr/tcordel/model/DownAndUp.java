@@ -601,7 +601,7 @@ public class DownAndUp extends AbstractStrat {
 			boolean collision = !moveAndCheckNoCollision(drone, direction, 0, true, 0);
 			System.err.println("Attacking collision check for drone " + drone.id + ": " + collision);
 			if (collision) {
-				Vector direction2 = filterDirection(drone, drone.pos.add(direction), direction, 0, Game.HEIGHT);
+				Vector direction2 = filterDirection(drone, drone.pos.add(game.normalizeDroneSpeed(direction)), direction, 0, 0);
 				System.err.println("Collision ! " + direction + "->" + direction2);
 				direction = direction2;
 			}
@@ -613,7 +613,7 @@ public class DownAndUp extends AbstractStrat {
 		if (direction == null) {
 			return direction;
 		}
-		Vector vector = drone.pos.add(direction);
+		Vector vector = drone.pos.add(game.normalizeDroneSpeed(direction));
 		drone.move = game.snapToDroneZone(vector);
 		game.updateDrone(drone);
 		boolean processFilter = game.uglies
@@ -624,7 +624,7 @@ public class DownAndUp extends AbstractStrat {
 		if (!processFilter) {
 			System.err.println("Filter border target only for " + drone.id + " due to collision");
 			xLimit = 0;
-			yLimit = Game.HEIGHT;
+			yLimit = 0;
 		}
 
 		return filterDirection(drone, vector, direction, xLimit, yLimit);

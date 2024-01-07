@@ -1,7 +1,6 @@
 package fr.tcordel.model;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -380,54 +379,59 @@ public class DownAndUp extends AbstractStrat {
 			return false;
 		}
 
-
-		int i = 0;
+		int i1 = 0;
+		Vector droneMoveFirstIteration = null;
+		Vector firstEscapeFirstIteration = null;
 		main:
-		for (; i < 360; i++) {
-			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
+		for (; i1 < 360 / 1; i1 += 1) {
+			int offset1 = (i1 % 2 > 0 ? 1 : -1) * (i1 / 2);
 
-			Vector rotate = vector.rotate(offset * _1DegToRadians);
-			Vector rotateNormalized = rotate.normalize().mult(Game.DRONE_MOVE_SPEED).round();
-			droneMove = game.snapToDroneZone(dronePosition.add(rotate).round());
-			Vector droneSpeed = game.getDroneSpeed(dronePosition, droneMove);
+			Vector rotate1 = vector.rotate(offset1 * _1DegToRadians);
+			Vector rotateNormalized1 = rotate1.normalize().mult(Game.DRONE_MOVE_SPEED).round();
+			droneMoveFirstIteration = game.snapToDroneZone(dronePosition.add(rotate1).round());
+			Vector droneSpeed1 = game.getDroneSpeed(dronePosition, droneMoveFirstIteration);
 
-			for (Ugly ugly : conflicting) {
-				if (game.getCollision2(dronePosition, droneSpeed, ugly.pos, ugly.speed)) {
+			for (Ugly ugly1 : conflicting) {
+				if (game.getCollision2(dronePosition, droneSpeed1, ugly1.pos, ugly1.speed)) {
 					continue main;
 				}
 			}
 
-			int j = 0;
-			inner:
-			for (; j < 25; j++) {
-				int offset2 = (j % 2 > 0 ? 1 : -1) * (j / 2);
-				Vector secondMove = game.snapToDroneZone(droneMove.add(rotateNormalized.rotate(offset2 * _15DegToRadians)).round());
-				Vector secondSpeed = game.getDroneSpeed(droneMove, secondMove);
+			if (firstEscapeFirstIteration == null) {
+				firstEscapeFirstIteration = rotate1;
+			}
 
-				for (Ugly ugly : conflicting) {
-					if (ugly.speed.length() > 0) {
+			int j1 = 0;
+			inner:
+			for (; j1 < 25; j1++) {
+				int offset21 = (j1 % 2 > 0 ? 1 : -1) * (j1 / 2);
+				Vector secondMove1 = game.snapToDroneZone(droneMoveFirstIteration.add(rotateNormalized1.rotate(offset21 * _15DegToRadians)).round());
+				Vector secondSpeed1 = game.getDroneSpeed(droneMoveFirstIteration, secondMove1);
+
+				for (Ugly ugly1 : conflicting) {
+					if (ugly1.speed.length() > 0) {
 //						continue;
 					}
-					Vector newPosition = game.snapToUglyZone(ugly.pos.add(ugly.speed));
-					Vector attackVec = new Vector(newPosition, droneMove);
-					if (attackVec.length() > Game.LIGHT_SCAN_RANGE) {
+					Vector newPosition1 = game.snapToUglyZone(ugly1.pos.add(ugly1.speed));
+					Vector attackVec1 = new Vector(newPosition1, droneMoveFirstIteration);
+					if (attackVec1.length() > Game.LIGHT_SCAN_RANGE) {
 						continue;
 					}
-					if (attackVec.length() > Game.UGLY_ATTACK_SPEED) {
-						attackVec = attackVec.normalize().mult(Game.UGLY_ATTACK_SPEED);
+					if (attackVec1.length() > Game.UGLY_ATTACK_SPEED) {
+						attackVec1 = attackVec1.normalize().mult(Game.UGLY_ATTACK_SPEED);
 					}
-					attackVec = attackVec.round();
+					attackVec1 = attackVec1.round();
 //					System.err.println("AttackVec " + ugly.id + " " + newPosition +" - "+ attackVec + " with drone at " + droneMove );
 
-					if (game.getCollision2(droneMove, secondSpeed, newPosition, attackVec)) {
+					if (game.getCollision2(droneMoveFirstIteration, secondSpeed1, newPosition1, attackVec1)) {
 						continue inner;
 					}
 				}
 				break;
 			}
 
-			if (j == 25) {
-				System.err.println("Second step collision detected");
+			if (j1 == 25) {
+//				System.err.println("Second step collision detected");
 				continue;
 			}
 			//			if (game.uglies
@@ -436,9 +440,85 @@ public class DownAndUp extends AbstractStrat {
 //				.noneMatch(u -> game.getCollision(drone, u, offset))) {
 			break;
 		}
-		drone.move = droneMove;
-		return i > 0;
+		if (i1 == 360) {
+			System.err.println("No escape found Trying escaping at full speed");
+			Vector vectorNormalized = game.normalizeDroneSpeed(droneMove);
+			if (!vectorNormalized.equals(vector)) {
+				System.err.println("Trying escaping at full speed");
+				int i = 0;
+				Vector droneMove1 = null;
+				Vector firstEscape = null;
+				main:
+				for (; i < 360 / 10; i += 10) {
+					int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
+
+					Vector rotate = vectorNormalized.rotate(offset * _1DegToRadians);
+					Vector rotateNormalized = rotate.normalize().mult(Game.DRONE_MOVE_SPEED).round();
+					droneMove1 = game.snapToDroneZone(dronePosition.add(rotate).round());
+					Vector droneSpeed = game.getDroneSpeed(dronePosition, droneMove1);
+
+					for (Ugly ugly : conflicting) {
+						if (game.getCollision2(dronePosition, droneSpeed, ugly.pos, ugly.speed)) {
+							continue main;
+						}
+					}
+
+					if (firstEscape == null) {
+						firstEscape = rotate;
+					}
+
+					int j = 0;
+					inner:
+					for (; j < 25; j++) {
+						int offset2 = (j % 2 > 0 ? 1 : -1) * (j / 2);
+						Vector secondMove = game.snapToDroneZone(droneMove1.add(rotateNormalized.rotate(offset2 * _15DegToRadians)).round());
+						Vector secondSpeed = game.getDroneSpeed(droneMove1, secondMove);
+
+						for (Ugly ugly : conflicting) {
+							if (ugly.speed.length() > 0) {
+		//						continue;
+							}
+							Vector newPosition = game.snapToUglyZone(ugly.pos.add(ugly.speed));
+							Vector attackVec = new Vector(newPosition, droneMove1);
+							if (attackVec.length() > Game.LIGHT_SCAN_RANGE) {
+								continue;
+							}
+							if (attackVec.length() > Game.UGLY_ATTACK_SPEED) {
+								attackVec = attackVec.normalize().mult(Game.UGLY_ATTACK_SPEED);
+							}
+							attackVec = attackVec.round();
+		//					System.err.println("AttackVec " + ugly.id + " " + newPosition +" - "+ attackVec + " with drone at " + droneMove );
+
+							if (game.getCollision2(droneMove1, secondSpeed, newPosition, attackVec)) {
+								continue inner;
+							}
+						}
+						break;
+					}
+
+					if (j == 25) {
+		//				System.err.println("Second step collision detected");
+						continue;
+					}
+					//			if (game.uglies
+		//				.stream()
+		//				.filter(ugly -> ugly.pos != null)
+		//				.noneMatch(u -> game.getCollision(drone, u, offset))) {
+					break;
+				}
+				if (i < 360) {
+					drone.move = droneMove1;
+					return i > 0;
+				}
+			}
+			System.err.println("First Escape...");
+			drone.move = firstEscapeFirstIteration;
+		} else {
+			drone.move = droneMoveFirstIteration;
+		}
+		return i1 > 0;
 	}
+
 
 	FishType[] targets = new FishType[2];
 
@@ -534,48 +614,15 @@ public class DownAndUp extends AbstractStrat {
 		if ((drone.getY() - threshold) >= target.getDeeperLimit() || (drone.getY() + threshold) <= target.getUpperLimit()) {
 			FishType fishType = FishType.forY(drone.getY(), 0);
 			System.err.println(drone.getId() + " depth too far from target type " + target + "... " + drone.getY() + "at zone" + fishType);
-//			FishType nextZone = switch (rd) {
-//			 case BL, BR ->FishType.deeper(fishType);
-//			 case TL, TR ->FishType.upper(fishType);
-//			};
-//
-//			if (nextZone != null
-//				&& nextZone != target
-//				&& (rd == RadarDirection.BR || rd == RadarDirection.BL)
-//				&& drone.allocations.values().stream().anyMatch(f -> f.getType() == nextZone
-//																	 && !drone.scans.contains(new Scan(f))
-//																	 && f.radarZone == RadarZone.EXTERNAL)) {
-//
-//				if (isLeft) {
-//					if (drone.getX() >= 2100) {
-//						System.err.println("Spotted External Fish in next zone, aim for it" + drone.id);
-//						return DOWN_BIG_LEFT;
-//					}
-//				} else {
-//					if (drone.getX() < 7900) {
-//						System.err.println("Spotted External Fish in next zone, aim for it" + drone.id);
-//						return DOWN_BIG_RIGHT;
-//					}
-//				}
-//			}
 			return switch (rd) {
 				case BL -> drone.getX() > Game.FISH_HEARING_RANGE ? DOWN_LEFT : DOWN;
 				case BR -> drone.getX() < (Game.WIDTH - Game.FISH_HEARING_RANGE) ? DOWN_RIGHT : DOWN;
-//				case BL, BR -> DOWN;
+
 				case TL, TR -> UP;
 			};
 		}
 
 
-//		boolean goToCenter = isLeft;
-		//		List<Integer> integers = isLeft ? radar.bottomLeft : radar.bottomRight;
-		//		for (Integer integer : integers) {
-		//			if (game.fishesMap.containsKey(integer)) {
-		//				goToCenter = !goToCenter;
-		//				break;
-		//			}
-		//		}
-		//		RadarDirection rd = goToCenter ? RadarDirection.BR : RadarDirection.BL;
 		direction = getFilteredVector(drone, rd.getDirection(), 400, 400);
 
 		return direction;

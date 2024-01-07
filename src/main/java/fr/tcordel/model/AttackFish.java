@@ -44,7 +44,7 @@ public class AttackFish extends AbstractStrat {
 	}
 
 	private void resetCache(Fish fish) {
-		if (Player.ROUND  - fish.lastSeenTurn >= 4) {
+		if (Player.ROUND  - fish.lastSeenTurn >= 8) {
 			System.err.println("Resetting position for fish " + fish.id);
 			fish.pos = null;
 			fish.speed = null;

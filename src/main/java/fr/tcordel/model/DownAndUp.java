@@ -322,7 +322,7 @@ public class DownAndUp extends AbstractStrat {
 			drone.move = game.snapToDroneZone(dronePosition.add(vector));
 			return false;
 		}
-//		System.err.println("Checking collision for " + drone.id + " with " + conflicting.stream().map(Ugly::getId).map(String::valueOf).collect(Collectors.joining(",")));
+		System.err.println("Checking collision for " + drone.id + " with " + conflicting.stream().map(Ugly::getId).map(String::valueOf).collect(Collectors.joining(",")));
 
 		int i1 = 0;
 		Vector droneMoveFirstIteration = null;
@@ -366,7 +366,7 @@ public class DownAndUp extends AbstractStrat {
 						attackVec1 = attackVec1.normalize().mult(Game.UGLY_ATTACK_SPEED);
 					}
 					attackVec1 = attackVec1.round();
-//					System.err.println("AttackVec " + ugly1.id + " " + newPosition1 +" - "+ attackVec1 + " with drone at " + droneMoveFirstIteration  + " with speed " + secondSpeed1);
+					System.err.println("AttackVec " + ugly1.id + " " + newPosition1 +" - "+ attackVec1 + " with drone at " + droneMoveFirstIteration  + " with speed " + secondSpeed1);
 
 					if (game.getCollision2(droneMoveFirstIteration, secondSpeed1, newPosition1, attackVec1)) {
 						continue inner;
@@ -376,7 +376,7 @@ public class DownAndUp extends AbstractStrat {
 			}
 
 			if (j1 == 25) {
-//				System.err.println("Second step collision detected");
+				System.err.println("Second step collision detected");
 				continue;
 			}
 			//			if (game.uglies
@@ -386,10 +386,10 @@ public class DownAndUp extends AbstractStrat {
 			break;
 		}
 		if (i1 == 360) {
-//			System.err.println("No escape found for " + vector);
+			System.err.println("No escape found for " + vector);
 			Vector vectorNormalized = game.maxDroneSpeed(vector);
 			if (!vectorNormalized.equals(vector)) {
-//				System.err.println("No escape found Trying escaping at full speed" + vectorNormalized);
+				System.err.println("No escape found Trying escaping at full speed" + vectorNormalized);
 				int i = 0;
 				Vector droneMove1 = null;
 				Vector firstEscape = null;
@@ -410,40 +410,6 @@ public class DownAndUp extends AbstractStrat {
 
 					if (firstEscape == null) {
 						firstEscape = rotate;
-					}
-
-					int j = 0;
-					inner:
-					for (; j < 25; j++) {
-						int offset2 = (j % 2 > 0 ? 1 : -1) * (j / 2);
-						Vector secondMove = game.snapToDroneZone(droneMove1.add(rotateNormalized.rotate(offset2 * _15DegToRadians)).round());
-						Vector secondSpeed = game.getDroneSpeed(droneMove1, secondMove);
-
-						for (Ugly ugly : conflicting) {
-							if (ugly.speed.length() > 0) {
-		//						continue;
-							}
-							Vector newPosition = game.snapToUglyZone(ugly.pos.add(ugly.speed));
-							Vector attackVec = new Vector(newPosition, droneMove1);
-							if (attackVec.length() > Game.LIGHT_SCAN_RANGE) {
-								continue;
-							}
-							if (attackVec.length() > Game.UGLY_ATTACK_SPEED) {
-								attackVec = attackVec.normalize().mult(Game.UGLY_ATTACK_SPEED);
-							}
-							attackVec = attackVec.round();
-		//					System.err.println("AttackVec " + ugly.id + " " + newPosition +" - "+ attackVec + " with drone at " + droneMove );
-
-							if (game.getCollision2(droneMove1, secondSpeed, newPosition, attackVec)) {
-								continue inner;
-							}
-						}
-						break;
-					}
-
-					if (j == 25) {
-		//				System.err.println("Second step collision detected");
-						continue;
 					}
 					//			if (game.uglies
 		//				.stream()

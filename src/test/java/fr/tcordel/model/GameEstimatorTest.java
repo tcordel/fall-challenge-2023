@@ -102,4 +102,16 @@ class GameEstimatorTest {
 		Assertions.assertThat(gameEstimator.getScore(GamePlayer.FOE))
 			.isEqualTo(54);
 	}
+
+	@Test
+	void testCommit2() {
+
+		gameEstimator.commit(Set.of(new Scan(FishType.JELLY, 2),new Scan(FishType.JELLY, 3),new Scan(FishType.JELLY, 0),new Scan(FishType.JELLY, 1),new Scan(FishType.CRAB, 2),new Scan(FishType.CRAB, 3),new Scan(FishType.FISH, 3),new Scan(FishType.FISH, 2),new Scan(FishType.FISH, 1),new Scan(FishType.FISH, 0)),
+			Set.of(new Scan(FishType.JELLY, 2),new Scan(FishType.JELLY, 3),new Scan(FishType.JELLY, 0),new Scan(FishType.JELLY, 1),new Scan(FishType.CRAB, 2),new Scan(FishType.CRAB, 3),new Scan(FishType.FISH, 3),new Scan(FishType.FISH, 2),new Scan(FishType.FISH, 1),new Scan(FishType.FISH, 0)));
+
+		Assertions.assertThat(gameEstimator.getScore(GamePlayer.ME))
+			.isEqualTo(32);
+		Assertions.assertThat(gameEstimator.getScore(GamePlayer.FOE))
+			.isEqualTo(32);
+	}
 }

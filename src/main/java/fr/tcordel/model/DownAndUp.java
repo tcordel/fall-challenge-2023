@@ -159,9 +159,10 @@ public class DownAndUp extends AbstractStrat {
 		});
 
 		int myHitPointPondered = gameEstimatorFinal.getScore(GamePlayer.ME);
-		int oppMaxScorePondered = gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+		int foeHitPointPondered = gameEstimatorFinal.getScore(GamePlayer.FOE);
+		int oppMaxScorePondered = foeCommitting ? foeHitPointPondered : gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 		int meMaxScorePondered = gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
-		System.err.println("Committing me PONDERED vs end estimation :%d, him %d, myMax %d".formatted(myHitPointPondered, oppMaxScorePondered, meMaxScorePondered));
+		System.err.println("Committing me PONDERED vs end estimation :%d, him %d, myMax %d, foe committing ? ".formatted(myHitPointPondered, oppMaxScorePondered, meMaxScorePondered, foeCommitting));
 		iWin = myHitPointPondered >= oppMaxScorePondered;
 		System.err.println("MeWINS " + isWinning(GamePlayer.ME));
 		System.err.println("FoeWINS " + isWinning(GamePlayer.FOE));
@@ -273,34 +274,6 @@ public class DownAndUp extends AbstractStrat {
 	}
 
 	private void preAllocate(Map<Integer, Radar> radars) {
-
-//		game.gamePlayers.get(GamePlayer.ME).drones
-//			.forEach(d -> allocations.put(d.id, new HashSet<>()));
-//
-//		Drone drone0 = game.gamePlayers.get(GamePlayer.ME).drones.get(0);
-//		Drone drone1 = game.gamePlayers.get(GamePlayer.ME).drones.get(1);
-//
-//		boolean splitHoriz = Math.abs(drone1.getX() - drone0.getX()) >= 1000;
-//		boolean splitVert = Math.abs(drone1.getY() - drone0.getY()) >= 1000;
-//		boolean drone0isLeft = drone1.getX() > drone0.getX();
-//		boolean drone0isUp = drone1.getY() > drone0.getY();
-//
-//
-//		Radar drone0radar = radars.get(drone0.id);
-//		Radar drone1radar = radars.get(drone1.id);
-//		if (splitHoriz) {
-//			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.topLeft : drone0radar.topRight);
-//			allocations.get(drone0.id).addAll(drone0isLeft ? drone0radar.bottomLeft : drone0radar.bottomRight);
-//			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.topLeft : drone1radar.topRight);
-//			allocations.get(drone1.id).addAll(!drone0isLeft ? drone1radar.bottomLeft : drone1radar.bottomRight);
-//		}
-//
-//		if (splitVert) {
-//			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topLeft : drone0radar.bottomLeft);
-//			allocations.get(drone0.id).addAll(drone0isUp ? drone0radar.topRight : drone0radar.bottomRight);
-//			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topLeft : drone1radar.bottomLeft);
-//			allocations.get(drone1.id).addAll(!drone0isUp ? drone1radar.topRight : drone1radar.bottomRight);
-//		}
 
 	}
 

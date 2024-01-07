@@ -502,11 +502,11 @@ public class DownAndUp extends AbstractStrat {
 		targets[i] = target;
 
 		RadarDirection finalRd = rd;
-		Predicate<Fish> sameDirection = f -> isWinning(GamePlayer.FOE) ;
-//		|| switch (finalRd) {
-//			case BL, BR ->f.pos.getY() >= drone.pos.getY();
-//			case TL, TR ->f.pos.getY() <= drone.pos.getY();
-//		};
+		Predicate<Fish> sameDirection = f -> isWinning(GamePlayer.FOE)
+		|| switch (finalRd) {
+			case BL, BR ->f.pos.getY() >= drone.pos.getY();
+			case TL, TR ->f.pos.getY() <= drone.pos.getY();
+		};
 		Optional<Fish> fishToAttack = drone.scans.stream()
 			.filter(scan ->  game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
 			.map(scan -> game.fishesMap.get(scan.fishId))

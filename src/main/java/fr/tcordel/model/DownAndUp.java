@@ -200,7 +200,7 @@ public class DownAndUp extends AbstractStrat {
 				});
 		}
 
-//		if (FOE_WINNNING_COMMIT_STRAT && isWinning(GamePlayer.FOE)) {
+//		if (FOE_WINNNING_COMMIT_STRAT && himCommintPoint > myScoreCommittingFirst2) {
 //			System.err.println("OPP can win :("); // bug vs bot seed=7773864893213486000
 //			GameEstimator gameEstimatorFinal2 = Player.gameEstimator.clone();
 //			list.forEach((key1, drones) -> {
@@ -238,13 +238,13 @@ public class DownAndUp extends AbstractStrat {
 //			}
 //		}
 
-		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
-			System.err.println("Loosing, so attacking whatever i can");
-			game.gamePlayers.get(GamePlayer.ME).drones
-				.stream()
-				.filter(drone -> drone.strat != Strat.UP)
-				.forEach(drone -> drone.strat = Strat.ATTACK);
-		}
+//		if (FOE_WINNNING_COUNTER_ATTACK_STRAT && isWinning(GamePlayer.FOE)) {
+//			System.err.println("Loosing, so attacking whatever i can");
+//			game.gamePlayers.get(GamePlayer.ME).drones
+//				.stream()
+//				.filter(drone -> drone.strat != Strat.UP)
+//				.forEach(drone -> drone.strat = Strat.ATTACK);
+//		}
 
 
 
@@ -387,6 +387,7 @@ public class DownAndUp extends AbstractStrat {
 			int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
 
 			Vector rotate = vector.rotate(offset * _1DegToRadians);
+			Vector rotateNormalized = rotate.normalize().mult(Game.DRONE_MOVE_SPEED).round();
 			droneMove = game.snapToDroneZone(dronePosition.add(rotate).round());
 			Vector droneSpeed = game.getDroneSpeed(dronePosition, droneMove);
 
@@ -400,7 +401,7 @@ public class DownAndUp extends AbstractStrat {
 			inner:
 			for (; j < 25; j++) {
 				int offset2 = (j % 2 > 0 ? 1 : -1) * (j / 2);
-				Vector secondMove = game.snapToDroneZone(droneMove.add(rotate.rotate(offset2 * _15DegToRadians)).round());
+				Vector secondMove = game.snapToDroneZone(droneMove.add(rotateNormalized.rotate(offset2 * _15DegToRadians)).round());
 				Vector secondSpeed = game.getDroneSpeed(droneMove, secondMove);
 
 				for (Ugly ugly : conflicting) {

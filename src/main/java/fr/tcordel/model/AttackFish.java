@@ -18,11 +18,13 @@ public class AttackFish extends AbstractStrat {
 			double targetX = fish.pos.getX() + offset;
 			double deltaTargetX = targetX - drone.getX();
 			double deltaTargetY = pos.getY() - drone.getY();
+			boolean correctingX = (drone.getX() < targetX && drone.getX() < fish.pos.getX())
+				|| (drone.getX() > targetX && drone.getX() > fish.pos.getX());
 			if (fish.pos.distance(drone.pos) >= Game.FISH_HEARING_RANGE) {
 
 				target = new Vector((int)pos.getX() + offset - drone.getX(),
 					deltaTargetY);
-			} else if (Math.abs(deltaTargetX) >= 450) {
+			} else if (correctingX && Math.abs(deltaTargetX) >= 450) {
 				System.err.println("Correcting X for drone " + drone.id + "to attack " + fish.id);
 				target = new Vector(deltaTargetX, 0);
 			} else if (Math.abs(deltaTargetY) >= 450) {

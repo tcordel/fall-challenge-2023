@@ -37,7 +37,12 @@ public abstract class AbstractStrat {
 		}
 		return false;
 	}
-
+	 boolean droneUnderPressure(Drone drone) {
+		return game.uglies
+			.stream()
+			.filter(u -> u.getPos() != null)
+			.anyMatch(u -> u.pos.distance(drone.pos) <= (Game.DRONE_MOVE_SPEED));
+	}
 	protected Vector filterDirection(Drone drone, Vector vector, Vector direction, int xLimit, int yLimit) {
 		double toXborder = Math.min(vector.getX(), Math.abs(vector.getX() - Game.WIDTH));
 		double currentToXBorder = Math.min(drone.getX(), Math.abs(drone.getX() - Game.WIDTH));

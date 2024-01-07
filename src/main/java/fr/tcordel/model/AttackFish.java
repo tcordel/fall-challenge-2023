@@ -14,7 +14,7 @@ public class AttackFish extends AbstractStrat {
 		boolean visible = fish.pos != null;
 		if (visible) {
 			pos = game.snapToFishZone(fish.pos.add(fish.speed), fish);
-			int offset = ((pos.getX() < (Game.WIDTH / 2)) ? 1 : -1) * Game.DARK_SCAN_RANGE;
+			int offset = ((pos.getX() < (Game.WIDTH / 2)) ? 1 : -1) * (droneUnderPressure(drone) ? Game.FISH_HEARING_RANGE: Game.DARK_SCAN_RANGE);
 			double targetX = fish.pos.getX() + offset;
 			double deltaTargetX = targetX - drone.getX();
 			double deltaTargetY = pos.getY() - drone.getY();
@@ -25,7 +25,7 @@ public class AttackFish extends AbstractStrat {
 				target = new Vector((int)pos.getX() + offset - drone.getX(),
 					deltaTargetY);
 			} else if (correctingX && Math.abs(deltaTargetX) >= 450) {
-				System.err.println("Correcting X for drone " + drone.id + "to attack " + fish.id);
+				System.err.println("Correcting X for drone " + drone.id + "to attack " + fish.id + " at " + deltaTargetX);
 				target = new Vector(deltaTargetX, 0);
 			} else if (Math.abs(deltaTargetY) >= 450) {
 				System.err.println("Correcting Y for drone " + drone.id + "to attack " + fish.id);

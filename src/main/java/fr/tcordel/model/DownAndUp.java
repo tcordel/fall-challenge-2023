@@ -153,14 +153,11 @@ public class DownAndUp extends AbstractStrat {
 			Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1 && d.isCommitting())
 				.flatMap(drone -> drone.scans.stream())
 				.collect(Collectors.toSet());
-			System.err.println("MY" + myScans.stream().map(Scan::toString).collect(Collectors.joining(",")));
-			System.err.println("OPPSCANS" + oppScans.stream().map(Scan::toString).collect(Collectors.joining(",")));
 			gameEstimatorFinal.commit(myScans, oppScans);
 		});
 
 		int myHitPointPondered = gameEstimatorFinal.getScore(GamePlayer.ME);
-		int foeHitPointPondered = gameEstimatorFinal.getScore(GamePlayer.FOE);
-		int oppMaxScorePondered = foeCommitting ? foeHitPointPondered : gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
+		int oppMaxScorePondered = gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.FOE));
 		int meMaxScorePondered = gameEstimatorFinal.computeFullEndGameScore(game.gamePlayers.get(GamePlayer.ME));
 		System.err.println("Committing me PONDERED vs end estimation :%d, him %d, myMax %d, foe committing ? ".formatted(myHitPointPondered, oppMaxScorePondered, meMaxScorePondered, foeCommitting));
 		iWin = myHitPointPondered >= oppMaxScorePondered;

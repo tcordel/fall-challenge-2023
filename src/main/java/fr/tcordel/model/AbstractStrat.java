@@ -55,7 +55,7 @@ public abstract class AbstractStrat {
 			System.err.println("Reset Y for drone " + drone.getId() + " v" + vector+ ", " + yLimit + " new Y " + newY);
 			direction =  new Vector(direction.getX(), newY);
 		}
-		if (direction.getX() <= 2 && direction.getY() <= 2) {
+		if (Math.abs(direction.getX()) <= 2 && Math.abs(direction.getY()) <= 2) {
 			System.err.println("GoingUP for drone " + drone.getId());
 			direction = UP;
 		}

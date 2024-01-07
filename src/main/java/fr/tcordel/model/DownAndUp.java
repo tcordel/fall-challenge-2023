@@ -372,18 +372,18 @@ public class DownAndUp extends AbstractStrat {
 			.toList();
 
 		Vector dronePosition = drone.pos;
-		Vector droneMove = game.snapToDroneZone(dronePosition.add(vector));
 
 		if (conflicting.isEmpty()) {
-			drone.move = droneMove;
+			drone.move = game.snapToDroneZone(dronePosition.add(vector));
 			return false;
 		}
+//		System.err.println("Checking collision for " + drone.id + " with " + conflicting.stream().map(Ugly::getId).map(String::valueOf).collect(Collectors.joining(",")));
 
 		int i1 = 0;
 		Vector droneMoveFirstIteration = null;
 		Vector firstEscapeFirstIteration = null;
 		main:
-		for (; i1 < 360 / 1; i1 += 1) {
+		for (; i1 < 360; i1 += 1) {
 			int offset1 = (i1 % 2 > 0 ? 1 : -1) * (i1 / 2);
 
 			Vector rotate1 = vector.rotate(offset1 * _1DegToRadians);
@@ -398,7 +398,7 @@ public class DownAndUp extends AbstractStrat {
 			}
 
 			if (firstEscapeFirstIteration == null) {
-				firstEscapeFirstIteration = rotate1;
+				firstEscapeFirstIteration = droneMoveFirstIteration;
 			}
 
 			int j1 = 0;
@@ -421,7 +421,7 @@ public class DownAndUp extends AbstractStrat {
 						attackVec1 = attackVec1.normalize().mult(Game.UGLY_ATTACK_SPEED);
 					}
 					attackVec1 = attackVec1.round();
-//					System.err.println("AttackVec " + ugly.id + " " + newPosition +" - "+ attackVec + " with drone at " + droneMove );
+//					System.err.println("AttackVec " + ugly1.id + " " + newPosition1 +" - "+ attackVec1 + " with drone at " + droneMoveFirstIteration  + " with speed " + secondSpeed1);
 
 					if (game.getCollision2(droneMoveFirstIteration, secondSpeed1, newPosition1, attackVec1)) {
 						continue inner;
@@ -441,16 +441,16 @@ public class DownAndUp extends AbstractStrat {
 			break;
 		}
 		if (i1 == 360) {
-			System.err.println("No escape found Trying escaping at full speed");
-			Vector vectorNormalized = game.normalizeDroneSpeed(droneMove);
+//			System.err.println("No escape found for " + vector);
+			Vector vectorNormalized = game.maxDroneSpeed(vector);
 			if (!vectorNormalized.equals(vector)) {
-				System.err.println("Trying escaping at full speed");
+//				System.err.println("No escape found Trying escaping at full speed" + vectorNormalized);
 				int i = 0;
 				Vector droneMove1 = null;
 				Vector firstEscape = null;
 				main:
-				for (; i < 360 / 10; i += 10) {
-					int offset = (i % 2 > 0 ? 1 : -1) * (i / 2);
+				for (; i < 360 ; i += 1) {
+					int offset = ((i) % 2 > 0 ? 1 : -1) * (i / 2);
 
 					Vector rotate = vectorNormalized.rotate(offset * _1DegToRadians);
 					Vector rotateNormalized = rotate.normalize().mult(Game.DRONE_MOVE_SPEED).round();
@@ -511,8 +511,8 @@ public class DownAndUp extends AbstractStrat {
 					return i > 0;
 				}
 			}
-			System.err.println("First Escape...");
-			drone.move = firstEscapeFirstIteration;
+//			System.err.println("First Escape..." + firstEscapeFirstIteration);
+			drone.move = firstEscapeFirstIteration != null ? firstEscapeFirstIteration : droneMoveFirstIteration;
 		} else {
 			drone.move = droneMoveFirstIteration;
 		}

@@ -513,6 +513,14 @@ public class Game {
         return moveVec.round();
     }
 
+    public Vector maxDroneSpeed(Vector moveVec) {
+        if (moveVec.length() < DRONE_MOVE_SPEED) {
+            moveVec = moveVec.normalize().mult(DRONE_MOVE_SPEED);
+        }
+        return moveVec.round();
+    }
+
+
     public int getMoveSpeed(Drone drone) {
         int moveSpeed = (int) (DRONE_MOVE_SPEED - DRONE_MOVE_SPEED * DRONE_MOVE_SPEED_LOSS_PER_SCAN * drone.scans.size());
         return moveSpeed;

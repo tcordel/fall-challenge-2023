@@ -252,8 +252,8 @@ public class DownAndUp extends AbstractStrat {
 			if (
 				//			!escaping&&
 				drone.move.getY() >= FishType.JELLY.getUpperLimit()
-				&& (!batterieToogle[i] || (drone.getY() > 6500))
-				&& (isInRange(drone, radar.getTypes(drone.allocations)) || isUnknownUgly || (target == FishType.CRAB && (drone.getY() > 6500)))
+				&& (!batterieToogle[i] || (drone.getY() > 6200))
+				&& (isInRange(drone, radar.getTypes(drone.allocations)) || isUnknownUgly || (target == FishType.CRAB && (drone.getY() > 6200)))
 				&& needLight
 			) {
 				lightOn = true;

@@ -9,11 +9,11 @@ import org.junit.jupiter.api.Test;
 
 class GameEstimatorTest {
 
-	private final GameEstimator gameEstimator = new GameEstimator();
+	private GameEstimator gameEstimator;
 
 	@BeforeEach
 	void reset() {
-		gameEstimator.reset();
+		gameEstimator = new GameEstimator();
 	}
 	@Test
 	void test() {
@@ -82,6 +82,24 @@ class GameEstimatorTest {
 			.isEqualTo(57);
 
 
+	}
 
+	@Test
+	void testCommit() {
+
+		gameEstimator.commit(Set.of(),
+			Set.of(new Scan(FishType.JELLY, 2),new Scan(FishType.JELLY, 0),new Scan(FishType.CRAB, 0),new Scan(FishType.FISH, 2),new Scan(FishType.FISH, 0)));
+
+		Assertions.assertThat(gameEstimator.getScore(GamePlayer.ME))
+			.isEqualTo(0);
+		Assertions.assertThat(gameEstimator.getScore(GamePlayer.FOE))
+			.isEqualTo(24);
+		gameEstimator.commit(Set.of(new Scan(FishType.JELLY, 2),new Scan(FishType.JELLY, 3),new Scan(FishType.JELLY, 1),new Scan(FishType.CRAB, 0),new Scan(FishType.CRAB, 1),new Scan(FishType.CRAB, 2),new Scan(FishType.CRAB, 3),new Scan(FishType.FISH, 3),new Scan(FishType.FISH, 2),new Scan(FishType.FISH, 1),new Scan(FishType.FISH, 0)),
+			Set.of(new Scan(FishType.JELLY, 3),new Scan(FishType.JELLY, 1),new Scan(FishType.CRAB, 1),new Scan(FishType.CRAB, 3),new Scan(FishType.FISH, 3),new Scan(FishType.FISH, 1)));
+
+		Assertions.assertThat(gameEstimator.getScore(GamePlayer.ME))
+			.isEqualTo(50);
+		Assertions.assertThat(gameEstimator.getScore(GamePlayer.FOE))
+			.isEqualTo(54);
 	}
 }

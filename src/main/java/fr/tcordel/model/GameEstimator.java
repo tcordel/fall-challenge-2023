@@ -57,7 +57,9 @@ public class GameEstimator {
 			if (firstToScan.containsKey(scan)) {
 				continue;
 			}
-			if (myScans.contains(scan) && !foeScans.contains(scan)) {
+			if (myScans.contains(scan) && foeScans.contains(scan)) {
+				firstToScan.put(scan, -1);
+			} else if (myScans.contains(scan) && !foeScans.contains(scan)) {
 				firstToScan.put(scan, GamePlayer.ME);
 			} else if (foeScans.contains(scan) && !myScans.contains(scan)) {
 				firstToScan.put(scan, GamePlayer.FOE);
@@ -70,7 +72,9 @@ public class GameEstimator {
 			}
 			boolean iCompleted = playerScannedAllFishOfType(allOfMyScans, type);
 			boolean foeCompleted = playerScannedAllFishOfType(allOfFoeScans, type);
-			if (iCompleted && !foeCompleted) {
+			if (iCompleted && foeCompleted) {
+				firstToScanAllFishOfType.put(type, -1);
+			} else if (iCompleted && !foeCompleted) {
 				firstToScanAllFishOfType.put(type, GamePlayer.ME);
 			} else if (foeCompleted && !iCompleted) {
 				firstToScanAllFishOfType.put(type, GamePlayer.FOE);
@@ -84,7 +88,9 @@ public class GameEstimator {
 			}
 			boolean iCompleted = playerScannedAllFishOfColor(allOfMyScans, color);
 			boolean foeCompleted = playerScannedAllFishOfColor(allOfFoeScans, color);
-			if (iCompleted && !foeCompleted) {
+			if (iCompleted && foeCompleted) {
+				firstToScanAllFishOfColor.put(color, -1);
+			} else if (iCompleted && !foeCompleted) {
 				firstToScanAllFishOfColor.put(color, GamePlayer.ME);
 			} else if (foeCompleted && !iCompleted) {
 				firstToScanAllFishOfColor.put(color, GamePlayer.FOE);

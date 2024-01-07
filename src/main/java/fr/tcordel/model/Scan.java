@@ -39,11 +39,9 @@ public class Scan {
     @Override
     public String toString() {
         return String.format(
-            "%s (%d) %s (%d)",
-            Game.COLORS[color],
-            color,
-            type.name().toLowerCase(),
-            type.ordinal()
+            "new Scan(FishType.%s, %d)",
+            type,
+            color
         );
 
     }

@@ -142,26 +142,8 @@ public class DownAndUp extends AbstractStrat {
 		});
 
 
-//		boolean iWillCommitFirst = !foeCommitting ||
-//								   game.gamePlayers
-//									   .get(GamePlayer.ME)
-//									   .drones.stream()
-//									   .map(d -> d.pos)
-//									   .anyMatch(p -> p.getX() <= (Game.DRONE_MOVE_SPEED / 2) + game.gamePlayers
-//										   .get(GamePlayer.FOE)
-//										   .drones.stream()
-//										   .map(d -> d.pos)
-//										   .mapToDouble(Vector::getX)
-//										   .min().orElse(Double.MAX_VALUE));
-//		iWin = myCommitPoint >= oppMaxScore;
 		foeWins = oppMaxScore2 >= myScoreCommittingFirst2;
-//		if (firstWinningIndex == null) {
-//			if (iWin) {
-//				firstWinningIndex = GamePlayer.ME;
-//			} else if (foeWins) {
-//				firstWinningIndex = GamePlayer.FOE;
-//			}
-//		}
+
 
 		GameEstimator gameEstimatorFinal = Player.gameEstimator.clone();
 		list.forEach((key1, drones) -> {
@@ -171,6 +153,8 @@ public class DownAndUp extends AbstractStrat {
 			Set<Scan> oppScans = drones.stream().filter(d -> d.getOwner().getIndex() == 1 && d.isCommitting())
 				.flatMap(drone -> drone.scans.stream())
 				.collect(Collectors.toSet());
+			System.err.println("MY" + myScans.stream().map(Scan::toString).collect(Collectors.joining(",")));
+			System.err.println("OPPSCANS" + oppScans.stream().map(Scan::toString).collect(Collectors.joining(",")));
 			gameEstimatorFinal.commit(myScans, oppScans);
 		});
 
@@ -187,16 +171,7 @@ public class DownAndUp extends AbstractStrat {
 				.drones
 				.stream()
 				.filter(d -> !d.scans.isEmpty())
-				.forEach(d -> {
-//					Drone opposite = game.getFoeFor(d.id);
-//					boolean foeCom = opposite.isCommitting();
-//					int myTurnToCommit = (int)Math.ceil((d.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
-//					int oppTurnToCommit = (int)Math.ceil((opposite.getY() - Game.DRONE_START_Y) / Game.DRONE_MOVE_SPEED);
-//					System.err.printf("D %d Foe %d committing %b, turn %d vs %d %n", d.id, opposite.id, foeCom, myTurnToCommit, oppTurnToCommit);
-//					if (!foeCom || myTurnToCommit <= oppTurnToCommit) {
-						d.strat = Strat.UP;
-//					}
-				});
+				.forEach(d -> d.strat = Strat.UP);
 		}
 
 //		if (FOE_WINNNING_COMMIT_STRAT && himCommintPoint > myScoreCommittingFirst2) {

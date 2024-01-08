@@ -310,6 +310,8 @@ public class DownAndUp extends AbstractStrat {
 	}
 
 	public boolean checkCollisionDeeper(Drone drone, Vector vector) {
+		vector = game.normalizeDroneSpeed(vector);
+
 		List<Ugly> conflicting = game.uglies
 			.stream()
 			.filter(u -> u.pos != null)
@@ -330,9 +332,8 @@ public class DownAndUp extends AbstractStrat {
 		main:
 		for (; i1 < 360; i1 += 1) {
 			int offset1 = (i1 % 2 > 0 ? 1 : -1) * (i1 / 2);
-
 			Vector rotate1 = vector.rotate(offset1 * _1DegToRadians);
-			Vector rotateNormalized1 = rotate1.normalize().mult(Game.DRONE_MOVE_SPEED).round();
+			Vector rotateNormalized1 = game.maxDroneSpeed(rotate1);
 			droneMoveFirstIteration = game.snapToDroneZone(dronePosition.add(rotate1).round());
 			Vector droneSpeed1 = game.getDroneSpeed(dronePosition, droneMoveFirstIteration);
 
@@ -354,14 +355,14 @@ public class DownAndUp extends AbstractStrat {
 				Vector secondSpeed1 = game.getDroneSpeed(droneMoveFirstIteration, secondMove1);
 
 				for (Ugly ugly1 : conflicting) {
-					if (ugly1.speed.length() > 0) {
-//						continue;
+					if (ugly1.speed.length() == 0) {
+						continue;
 					}
 					Vector newPosition1 = game.snapToUglyZone(ugly1.pos.add(ugly1.speed));
 					Vector attackVec1 = new Vector(newPosition1, droneMoveFirstIteration);
-					if (attackVec1.length() > Game.LIGHT_SCAN_RANGE) {
-						continue;
-					}
+//					if (attackVec1.length() > Game.LIGHT_SCAN_RANGE) {
+//						continue;
+//					}
 					if (attackVec1.length() > Game.UGLY_ATTACK_SPEED) {
 						attackVec1 = attackVec1.normalize().mult(Game.UGLY_ATTACK_SPEED);
 					}
@@ -398,7 +399,6 @@ public class DownAndUp extends AbstractStrat {
 					int offset = ((i) % 2 > 0 ? 1 : -1) * (i / 2);
 
 					Vector rotate = vectorNormalized.rotate(offset * _1DegToRadians);
-					Vector rotateNormalized = rotate.normalize().mult(Game.DRONE_MOVE_SPEED).round();
 					droneMove1 = game.snapToDroneZone(dronePosition.add(rotate).round());
 					Vector droneSpeed = game.getDroneSpeed(dronePosition, droneMove1);
 

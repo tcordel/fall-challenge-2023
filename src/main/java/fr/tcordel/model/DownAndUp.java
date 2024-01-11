@@ -395,10 +395,10 @@ public class DownAndUp extends AbstractStrat {
 				Vector droneMove1 = null;
 				Vector firstEscape = null;
 				main:
-				for (; i < 360 ; i += 1) {
+				for (; i < 36 ; i += 1) {
 					int offset = ((i) % 2 > 0 ? 1 : -1) * (i / 2);
 
-					Vector rotate = vectorNormalized.rotate(offset * _1DegToRadians);
+					Vector rotate = vectorNormalized.rotate(10 * offset * _1DegToRadians);
 					droneMove1 = game.snapToDroneZone(dronePosition.add(rotate).round());
 					Vector droneSpeed = game.getDroneSpeed(dronePosition, droneMove1);
 
@@ -502,11 +502,11 @@ public class DownAndUp extends AbstractStrat {
 		targets[i] = target;
 
 		RadarDirection finalRd = rd;
-		Predicate<Fish> sameDirection = f -> isWinning(GamePlayer.FOE)
-		|| switch (finalRd) {
-			case BL, BR ->f.pos.getY() >= drone.pos.getY();
-			case TL, TR ->f.pos.getY() <= drone.pos.getY();
-		};
+		Predicate<Fish> sameDirection = f -> isWinning(GamePlayer.FOE);
+//		|| switch (finalRd) {
+//			case BL, BR ->f.pos.getY() >= drone.pos.getY();
+//			case TL, TR ->f.pos.getY() <= drone.pos.getY();
+//		};
 		Optional<Fish> fishToAttack = drone.scans.stream()
 			.filter(scan ->  game.gamePlayers.get(GamePlayer.FOE).drones.stream().noneMatch(opp -> opp.scans.contains(scan)))
 			.map(scan -> game.fishesMap.get(scan.fishId))
